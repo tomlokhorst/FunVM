@@ -1,0 +1,31 @@
+name:                FunVM
+version:             0.0.1
+synopsis:            A Functional intermediate language
+description:         Better than sliced bread!
+license:             BSD3
+license-file:        LICENSE
+author:              Chis Eidhof,
+                     Tom Lokhorst,
+                     Sebastiaan Visser
+maintainer:          Tom Lokhorst <tom@lokhorst.eu>
+homepage:            http://funvm.org/
+stability:           Experimental
+category:            Language, Compilers/Interpreters, Code Generation
+build-type:          Simple
+cabal-version:       >= 1.6
+
+library
+  build-depends:       base >= 4 && < 5,
+                       bool-extras >= 0.3.0 && < 0.4,
+                       monads-fd >= 0.0.0.1 && < 0.1
+  hs-source-dirs:      src
+  exposed-modules:     FunVM.Core,
+                       FunVM.Syntax,
+                       FunVM.Types,
+                       FunVM.TypeInferencer
+
+executable funi
+  build-depends:       base >= 4 && < 5
+  main-is:             Funi.hs
+  hs-source-dirs:      src
+
