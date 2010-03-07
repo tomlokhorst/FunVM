@@ -35,21 +35,6 @@ type Constraints   = [(Name, Type)]
 type Substitutions = [(Name, Type)]
 type UniqueVars    = [Name]
 
--- ConInt  Int
--- Var     Name
--- Lambda  Name    Expr
--- App     Expr    Expr
--- LetRec  [Decl]  Expr
--- Node    Tag     [Expr]
--- Field   Name    Int
--- Case    Name    [(Tag, Expr)]
--- Delay   Expr
--- Force   Expr
--- Tuple   [Expr]
-
--- Decl       Name    Expr
--- TupleDecl  [Name]  Expr
-
 uniqueVars :: UniqueVars
 uniqueVars = map (return) ['a'..'z'] ++ concatMap (\s -> map (\c -> s ++ [c]) ['a'..'z']) uniqueVars
 
@@ -76,6 +61,21 @@ typeInfer env uvs (S.LetRec ds e) =
   let ((env1, cns1, errs1), uvs1) = typeInferDecls env uvs ds
       ((t, cns2, errs2), uvs2)    = typeInfer env1 uvs1 e
   in ((t, cns2 ++ cns1, errs2 ++ errs1), uvs2)
+typeInfer env uvs (S.Node t es)   =
+  let ((ts, cns, errs), uvs1) = foldr f (([], [], []), uvs) es
+  in ((Node ts, cns, errs), uvs1)
+    where
+      f tt ((ts, cns, errs), uvs') = let ((t, cns', errs'), uvs'') = typeInfer env uvs' tt
+                                     in ((t:ts, cns' ++ cns, errs' ++ errs), uvs'')
+typeInfer env uvs (S.Delay e)     =
+  let ((t, cns, errs), uvs') = typeInfer env uvs e
+  in ((Lazy t, cns, errs), uvs')
+typeInfer env uvs (S.Tuple es)    =
+  let ((ts, cns, errs), uvs1) = foldr f (([], [], []), uvs) es
+  in ((Tuple ts, cns, errs), uvs1)
+    where
+      f tt ((ts, cns, errs), uvs') = let ((t, cns', errs'), uvs'') = typeInfer env uvs' tt
+                                     in ((t:ts, cns' ++ cns, errs' ++ errs), uvs'')
 
 typeInferDecls :: TypeEnv -> UniqueVars -> [S.Decl] -> ((TypeEnv, Constraints, Errors), UniqueVars)
 typeInferDecls env uvs ds =
@@ -181,12 +181,12 @@ tiSet =
   [ ([], S.ConInt 3)
   --, ([], S.Lambda "x" (S.ConInt 2))
   --, ([], S.Lambda "x" (S.Var "x"))
-  --, ([], S.App (S.Lambda "x" (S.Var "x")) (S.ConInt 4))
-  --, ([], S.App (S.Lambda "x" (S.Var "x")) (S.Lambda "y" (S.Var "y")))
+  --, ([], S.Lambda "x" (S.Var "x") `S.App` S.ConInt 4)
+  --, ([], S.Lambda "x" (S.Var "x") `S.App` S.Lambda "y" (S.Var "y"))
   --, ([], S.Var "x")
-  --, ([], S.App (S.Lambda "x" (S.Var "x")) (S.Var "y"))
-  --, ([], S.App (S.Lambda "x" (S.Var "z")) (S.Var "y"))
-  --, ([], S.App (S.ConInt 1) (S.ConInt 2))
+  --, ([], S.Lambda "x" (S.Var "x") `S.App` S.Var "y")
+  --, ([], S.Lambda "x" (S.Var "z") `S.App` S.Var "y")
+  --, ([], S.ConInt 1 `S.App` S.ConInt 2)
   --, ([], S.LetRec [ S.Decl "x" (S.Var "y")
   --                , S.Decl "y" (S.ConInt 3)
   --                , S.Decl "z" (S.Var "y")
@@ -195,10 +195,10 @@ tiSet =
   --                , S.Decl "cn" (S.Lambda "x" (S.ConInt 4))
   --                , S.Decl "tw" (S.Lambda "x" (S.Lambda "y" (S.ConInt 0)))
   --                ] (S.Var "tw" `S.App` (S.App (S.Var "id") (S.ConInt 2)) `S.App` (S.App (S.Var "id") (S.Var "cn"))))
-  , ([], S.LetRec [ S.Decl "z" (S.App (S.Var "id") (S.Var "y"))
-                  , S.Decl "y" (S.ConInt 3)
-                  , S.Decl "id" (S.Lambda "y" (S.Var "y"))
-                  ] (S.Var "z"))
+  --, ([], S.LetRec [ S.Decl "z" (S.App (S.Var "id") (S.Var "y"))
+  --                , S.Decl "y" (S.ConInt 3)
+  --                , S.Decl "id" (S.Lambda "y" (S.Var "y"))
+  --                ] (S.Var "z"))
   --, ( [("id", Fun (Var "a1") (Var "a1")), ("x", Base Int32)]
   --  , S.App (S.Var "id") (S.App (S.Var "id") (S.App (S.Var "id") (S.Var "x"))))
   --, ([], S.LetRec [ S.Decl "z" (S.App (S.Var "id") (S.ConInt 3))
@@ -207,10 +207,18 @@ tiSet =
   --, ([], S.LetRec [ S.Decl "undefined" (S.Var "undefined")
   --                , S.Decl "id" (S.Lambda "y" (S.Var "y"))
   --                ] (S.Var "id"))
-  , ([], S.LetRec [ S.Decl "x" (S.App (S.Var "id") (S.ConInt 3))
-                  , S.Decl "y" (S.App (S.Var "id") (S.Lambda "y" (S.Var "y")))
-                  , S.Decl "id"  (S.Lambda "x" (S.Var "x"))
-                  ] (S.ConInt 0))
+  --, ([], S.LetRec [ S.Decl "x" (S.App (S.Var "id") (S.ConInt 3))
+  --                , S.Decl "y" (S.App (S.Var "id") (S.Lambda "y" (S.Var "y")))
+  --                , S.Decl "id"  (S.Lambda "x" (S.Var "x"))
+  --                ] (S.ConInt 0))
+  --, ([], S.Node (S.Tag "Pair") [S.ConInt 1, S.ConInt 2])
+  --, ([], S.Node (S.Tag "Pair") [S.ConInt 1, S.Lambda "x" (S.ConInt 2)])
+  --, ([], S.Node (S.Tag "Pair") [S.ConInt 1, S.Node (S.Tag "Unit") []])
+  --, ([], S.Delay (S.ConInt 3))
+  --, ([], S.Delay (S.Lambda "x" (S.Var "x") `S.App` S.ConInt 3))
+  --, ([], S.Tuple [S.ConInt 1, S.ConInt 2])
+  --, ([], S.Tuple [S.ConInt 1, S.Lambda "x" (S.ConInt 2)])
+  --, ([], S.Tuple [S.ConInt 1, S.Node (S.Tag "Unit") []])
   ]
 
 ti :: IO ()
