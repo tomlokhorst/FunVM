@@ -1,6 +1,6 @@
 name:                FunVM
-version:             0.0.1
-synopsis:            A Functional intermediate language
+version:             0.2.0
+synopsis:            A Functional Intermediate Language
 description:         Better than sliced bread!
 license:             BSD3
 license-file:        LICENSE
@@ -17,12 +17,11 @@ cabal-version:       >= 1.6
 library
   build-depends:       base >= 4 && < 5,
                        bool-extras >= 0.3.0 && < 0.4,
-                       monads-fd >= 0.0.0.1 && < 0.1
+                       monads-fd >= 0.1.0.0 && < 0.2,
+                       transformers >= 0.2.0.0 && < 0.3
   hs-source-dirs:      src
-  exposed-modules:     FunVM.Core,
-                       FunVM.Syntax,
-                       FunVM.Types,
-                       FunVM.TypeInferencer
+  exposed-modules:     FunVM.Syntax,
+                       FunVM.Types
 
 executable funi
   build-depends:       base >= 4 && < 5
