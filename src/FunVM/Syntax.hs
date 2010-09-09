@@ -9,7 +9,7 @@ type Id = String
 -- | Module definition
 data Module
   = Module Id [Bind]
-  deriving (Eq, Show)
+  deriving Eq
 
 -- | Should be named `module', but that's not allowed
 modul' :: (Id -> [Bind] -> a) -> Module -> a
@@ -18,7 +18,7 @@ modul' f (Module x bs) = f x bs
 -- Value bindings
 data Bind
   = Bind [Pattern] Expr
-  deriving (Eq, Show)
+  deriving Eq
 
 bind :: ([Pattern] -> Expr -> a) -> Bind -> a
 bind f (Bind ps e) = f ps e
@@ -27,7 +27,7 @@ bind f (Bind ps e) = f ps e
 data Pattern
   = ValPattern   Id  T.Type
   | TypePattern  Id  T.Kind
-  deriving (Eq, Show)
+  deriving Eq
 
 pattern :: (Id -> T.Type -> a) 
              -> (Id -> T.Kind -> a)
@@ -48,14 +48,14 @@ data Expr
   | Delay   Expr
   | Force   Expr
   | FFI     String      T.Type
-  deriving (Eq, Show)
+  deriving Eq
 
 -- | Literal integers, characters or strings
 data Literal
   = Int     Integer
   | Char    Char
   | String  String
-  deriving (Eq, Show)
+  deriving Eq
 
 literal :: (Integer -> a)
              -> (Char -> a)
@@ -70,7 +70,7 @@ literal _ _ h (String s) = h s
 data LetType
   = NonRec
   | Rec
-  deriving (Eq, Show)
+  deriving Eq
 
 letType :: a -> a -> LetType -> a
 letType x _ NonRec = x

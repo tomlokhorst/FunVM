@@ -14,7 +14,7 @@ data Type
   | Quant   TyVar   Kind
   | TyVar   TyVar
   | Any
-  deriving (Eq, Show)
+  deriving Eq
 
 -- | Built-in types
 data Base
@@ -26,10 +26,10 @@ data Base
   | Int64
   | Character
   | Utf16String
-  deriving (Eq, Show)
+  deriving Eq
 
 -- | Kind of a type
 data Kind
   = Star
-  deriving (Eq, Show)
+  deriving Eq
 
