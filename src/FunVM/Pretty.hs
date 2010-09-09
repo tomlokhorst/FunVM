@@ -25,7 +25,7 @@ instance Pretty Bind where
 
 instance Pretty Pattern where
   pr pre (ValPattern  x t) = s x . s " : " . pr pre t
-  pr pre (TypePattern x t) = s x . s " : " . pr pre t
+  pr pre (TypePattern x t) = s x . s " :: " . pr pre t
 
 instance Pretty Expr where
   pr _   (Var x) = s x
