@@ -48,11 +48,16 @@ test =
                      (Lam [ValPattern "y" (Lazy [TyVar "d"])]
                           (Var "x"))))
     , Bind [ ValPattern "x" (Base Int32) ]
-           (Var "const" `App` [Lit (Int 3) (Base Int32)]
-             `App` [Lit (Char 'c') (Base Character)])
+           (Var "const" `App` [ Lit $ Type (Base Int32)
+                              , Lit $ Type (Base Character)
+                              ]
+                        `App` [Lit (Int 3 $ Base Int32)]
+                        `App` [Lit (Char 'c')])
     , Bind [ ValPattern "y" (Base Int32) ]
            (Lam [ValPattern "x" (Base Character)] (Var "x")
-             `App` [Lit (Char 'c') (Base Character)])
+             `App` [Lit (Char 'c')])
+    , Bind [ ValPattern "main" (Base Int32) ]
+       (Lit (Int 42 $ Base Int32))
     ]
 
 main :: IO ()

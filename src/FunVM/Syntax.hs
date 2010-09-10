@@ -1,7 +1,7 @@
 module FunVM.Syntax where
 
 import Data.List
-import qualified FunVM.Types as T
+import FunVM.Types
 
 -- | Identifier for variables and other names
 type Id = String
@@ -25,12 +25,12 @@ bind f (Bind ps e) = f ps e
 
 -- | Patterns in lambdas, lets or top level bindings
 data Pattern
-  = ValPattern   Id  T.Type
-  | TypePattern  Id  T.Kind
+  = ValPattern   Id  Type
+  | TypePattern  Id  Kind
   deriving Eq
 
-pattern :: (Id -> T.Type -> a) 
-             -> (Id -> T.Kind -> a)
+pattern :: (Id -> Type -> a) 
+             -> (Id -> Kind -> a)
              -> Pattern
              -> a
 pattern f _ (ValPattern x t)  = f x t
@@ -40,31 +40,34 @@ pattern _ g (TypePattern x k) = g x k
 -- | Main expression data type
 data Expr
   = Var     Id
-  | Lit     Literal     T.Type
+  | Lit     Literal
   | App     Expr        [Expr]
   | Lam     [Pattern]   Expr
   | Let     LetType     [Bind]      Expr
   | Multi   [Expr]
   | Delay   Expr
   | Force   Expr
-  | FFI     String      T.Type
+  | FFI     String      Type
   deriving Eq
 
 -- | Literal integers, characters or strings
 data Literal
-  = Int     Integer
+  = Int     Integer  Type
   | Char    Char
   | String  String
+  | Type    Type
   deriving Eq
 
-literal :: (Integer -> a)
+literal :: (Integer -> Type -> a)
              -> (Char -> a)
              -> (String -> a)
+             -> (Type -> a)
              -> Literal
              -> a
-literal f _ _ (Int x)    = f x
-literal _ g _ (Char c)   = g c
-literal _ _ h (String s) = h s
+literal f _ _ _ (Int x t)  = f x t
+literal _ f _ _ (Char x)   = f x
+literal _ _ f _ (String x) = f x
+literal _ _ _ f (Type x)   = f x
 
 -- | Type of let binding
 data LetType
@@ -79,7 +82,7 @@ letType _ y Rec    = y
 -- | Free value variables in expression
 fv :: Expr -> [Id]
 fv (Var     x)       = [x]
-fv (Lit     _ _)     = []
+fv (Lit     _)       = []
 fv (App     e  es)   = nub $ concat (fv e : (map fv es))
 fv (Lam     ps e)    = fv e \\ concatMap patvar ps
 fv (Let NonRec bs e) = let bds []      = []

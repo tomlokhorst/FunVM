@@ -28,8 +28,8 @@ instance Pretty Pattern where
   pr pre (TypePattern x t) = s x . s " :: " . pr pre t
 
 instance Pretty Expr where
-  pr _   (Var x) = s x
-  pr pre (Lit l t) = s "(" . pr pre l . s " : " . pr pre t . s ")"
+  pr _   (Var x)             = s x
+  pr pre (Lit l)             = pr pre l
   pr pre (App f@(App {}) as) = pr pre f . sp . tuple (map (pr pre) as)
   pr pre (App f@(Var {}) as) = pr pre f . sp . tuple (map (pr pre) as)
   pr pre (App f as)          = paren (pr pre f) . nl
@@ -47,9 +47,10 @@ instance Pretty Expr where
   pr pre (FFI x t)           = s "foreign " . shows x . s " : " . pr pre t
 
 instance Pretty Literal where
-  pr _ (Int x)    = shows x
-  pr _ (Char c)   = shows c
-  pr _ (String x) = shows x
+  pr pre (Int x t)  = s "(" . shows x . s " : " . pr pre t . s ")"
+  pr _   (Char c)   = shows c
+  pr _   (String x) = shows x
+  pr pre (Type t)   = pr pre t
 
 instance Pretty LetType where
   pr _ NonRec = id
