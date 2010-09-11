@@ -34,16 +34,20 @@ instance Pretty Expr where
   pr pre (App f@(Var {}) as) = pr pre f . sp . tuple (map (pr pre) as)
   pr pre (App f as)          = paren (pr pre f) . nl
                                 . pre . sp . tuple (map (pr pre) as)
-  pr pre (Lam ps e)          = s "\\" . tuple (map (pr pre) ps)
+  pr pre (Lam ps e@(Var {})) = s "\\" . tuple (map (pr pre) ps)
                                 . s " -> " . pr pre e
+  pr pre (Lam ps e@(Lam {})) = s "\\" . tuple (map (pr pre) ps)
+                                . s " -> " . pr pre e
+  pr pre (Lam ps e)          = s "\\" . tuple (map (pr pre) ps)
+                                . s " ->" . nl . pre . s "  " . pr (indent 2 pre) e
   pr pre (Let t bs e)        = s "let " . pr pre t . nl
-                                . inter nl (map (pr (pre . s "  ")) bs)
+                                . inter nl (map (pr (indent 2 pre)) bs)
                                 . s " in" . nl
                                 . pr pre e
   pr pre (Multi es)          = tuple (map (pr pre) es)
-  pr pre (Delay (Multi es))  = s "{" . commas (map (pr pre) es) . s "}"
-  pr pre (Delay e)           = s "{" . pr pre e . s "}"
-  pr pre (Force e)           = s "|" . pr pre e . s "|"
+  pr pre (Delay (Multi es))  = s "{" . commas (map (pr (indent 1 pre)) es) . s "}"
+  pr pre (Delay e)           = s "{" . pr (indent 1 pre) e . s "}"
+  pr pre (Force e)           = s "|" . pr (indent 1 pre) e . s "|"
   pr pre (FFI x t)           = s "foreign " . shows x . s " : " . pr pre t
 
 instance Pretty Literal where
@@ -83,6 +87,9 @@ instance Pretty Kind where
 sp, nl :: ShowS
 sp    = (" " ++)
 nl    = ('\n' :)
+
+indent :: Int -> ShowS -> ShowS
+indent x pre = pre . (replicate x ' ' ++)
 
 tuple :: [ShowS] -> ShowS
 tuple [x] = x

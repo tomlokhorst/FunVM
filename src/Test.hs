@@ -22,9 +22,17 @@ test =
                ([Base Int32, Quant "a" Star , Lazy [TyVar "a"], Lazy [TyVar "a"]]
                   `Fun` [TyVar "a"])
            ]
-           (FFI "primIf"
-             ([Base Int32, Quant "b" Star , Lazy [TyVar "b"], Lazy [TyVar "b"]]
-                 `Fun` [TyVar "b"]))
+           (Lam [ ValPattern  "p" (Base Int32)
+                , TypePattern "b" Star
+                , ValPattern  "x" (Lazy [TyVar "b"])
+                , ValPattern  "y" (Lazy [TyVar "b"])
+                ]
+                (Force ((FFI "primIf" ([ Base Int32
+                                       , Quant "c" Star
+                                       , Lazy [TyVar "c"]
+                                       , Lazy [TyVar "c"]
+                                       ] `Fun` [Lazy [TyVar "c"]])
+                        ) `App` [Var "p", Var "b", Var "x", Var "y"])))
     , Bind [ ValPattern "const'"
                ([Quant "a" Star, Quant "b" Star, TyVar "a", Lazy [TyVar "a"]]
                  `Fun` [TyVar "a"]) 
