@@ -1,4 +1,18 @@
-module FunVM.Syntax where
+module FunVM.Syntax
+  ( Id
+  , Module (..)
+  , modul'
+  , Bind (..)
+  , bind
+  , Pattern (..)
+  , pattern
+  , Expr (..)
+  , Literal (..)
+  , literal
+  , LetType (..)
+  , letType
+  , fv
+  ) where
 
 import Data.List
 import FunVM.Types

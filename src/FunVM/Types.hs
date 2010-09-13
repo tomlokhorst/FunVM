@@ -1,4 +1,11 @@
-module FunVM.Types where
+module FunVM.Types
+  ( TyVar
+  , Types
+  , Type (..)
+  , Base (..)
+  , Kind (..)
+  , int32
+  ) where
 
 -- | Type Variable
 type TyVar = String
@@ -32,4 +39,10 @@ data Base
 data Kind
   = Star
   deriving Eq
+
+-- | Convenience functions
+
+int32 :: Type
+int32 = Base Int32
+
 
