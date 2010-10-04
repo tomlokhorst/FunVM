@@ -66,10 +66,10 @@ data Expr
 
 -- | Literal integers, characters or strings
 data Literal
-  = Int     Integer  Type
-  | Char    Char
-  | String  String
-  | Type    Type
+  = Integer  Integer  Type
+  | Char     Char
+  | String   String
+  | Type     Type
   deriving Eq
 
 literal :: (Integer -> Type -> a)
@@ -78,10 +78,10 @@ literal :: (Integer -> Type -> a)
              -> (Type -> a)
              -> Literal
              -> a
-literal f _ _ _ (Int x t)  = f x t
-literal _ f _ _ (Char x)   = f x
-literal _ _ f _ (String x) = f x
-literal _ _ _ f (Type x)   = f x
+literal f _ _ _ (Integer x t)  = f x t
+literal _ f _ _ (Char x)       = f x
+literal _ _ f _ (String x)     = f x
+literal _ _ _ f (Type x)       = f x
 
 -- | Type of let binding
 data LetType

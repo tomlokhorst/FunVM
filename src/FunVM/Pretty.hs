@@ -51,10 +51,10 @@ instance Pretty Expr where
   pr pre (FFI x t)           = s "foreign " . shows x . s " : " . pr pre t
 
 instance Pretty Literal where
-  pr pre (Int x t)  = s "(" . shows x . s " : " . pr pre t . s ")"
-  pr _   (Char c)   = shows c
-  pr _   (String x) = shows x
-  pr pre (Type t)   = pr pre t
+  pr pre (Integer x t)  = s "(" . shows x . s " : " . pr pre t . s ")"
+  pr _   (Char c)       = shows c
+  pr _   (String x)     = shows x
+  pr pre (Type t)       = pr pre t
 
 instance Pretty LetType where
   pr _ NonRec = id
@@ -71,12 +71,9 @@ instance Pretty Type where
   pr _   (Any)       = s "_"
 
 instance Pretty Base where
+  pr _ (Int x)     = s ("int" ++ show x)
   pr _ Float32     = s "float32"
   pr _ Double64    = s "double64"
-  pr _ Int1        = s "int1"
-  pr _ Int8        = s "int8"
-  pr _ Int32       = s "int32"
-  pr _ Int64       = s "int64"
   pr _ Character   = s "char"
   pr _ Utf16String = s "string"
 

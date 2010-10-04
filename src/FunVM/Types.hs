@@ -26,12 +26,9 @@ data Type
 
 -- | Built-in types
 data Base
-  = Float32
+  = Int Int
+  | Float32
   | Double64
-  | Int1
-  | Int8
-  | Int32
-  | Int64
   | Character
   | Utf16String
   deriving Eq
@@ -44,7 +41,7 @@ data Kind
 -- | Convenience functions
 
 int32 :: Type
-int32 = Base Int32
+int32 = Base $ Int 32
 
 char :: Type
 char = Base Character
