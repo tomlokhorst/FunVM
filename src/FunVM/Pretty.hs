@@ -30,16 +30,16 @@ instance Pretty Pattern where
 instance Pretty Expr where
   pr _   (Var x)             = s x
   pr pre (Lit l)             = pr pre l
-  pr pre (App f@(App {}) as) = pr pre f . sp . tuple (map (pr pre) as)
-  pr pre (App f@(Var {}) as) = pr pre f . sp . tuple (map (pr pre) as)
-  pr pre (App f as)          = paren (pr pre f) . nl
-                                . pre . sp . tuple (map (pr pre) as)
   pr pre (Lam ps e@(Var {})) = s "\\" . tuple (map (pr pre) ps)
                                 . s " -> " . pr pre e
   pr pre (Lam ps e@(Lam {})) = s "\\" . tuple (map (pr pre) ps)
                                 . s " -> " . pr pre e
   pr pre (Lam ps e)          = s "\\" . tuple (map (pr pre) ps)
                                 . s " ->" . nl . pre . s "  " . pr (indent 2 pre) e
+  pr pre (App f@(App {}) as) = pr pre f . sp . tuple (map (pr pre) as)
+  pr pre (App f@(Var {}) as) = pr pre f . sp . tuple (map (pr pre) as)
+  pr pre (App f as)          = paren (pr pre f) . nl
+                                . pre . sp . tuple (map (pr pre) as)
   pr pre (Let t bs e)        = s "let " . pr pre t . nl
                                 . inter nl (map (pr (indent 2 pre)) bs)
                                 . s " in" . nl

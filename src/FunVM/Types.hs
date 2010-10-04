@@ -5,6 +5,7 @@ module FunVM.Types
   , Base (..)
   , Kind (..)
   , int32
+  , char
   ) where
 
 -- | Type Variable
@@ -45,4 +46,6 @@ data Kind
 int32 :: Type
 int32 = Base Int32
 
+char :: Type
+char = Base Character
 

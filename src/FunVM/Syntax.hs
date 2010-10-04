@@ -53,10 +53,10 @@ pattern _ g (TypePattern x k) = g x k
 
 -- | Main expression data type
 data Expr
-  = Var     Id
-  | Lit     Literal
-  | App     Expr        [Expr]
+  = Lit     Literal
+  | Var     Id
   | Lam     [Pattern]   Expr
+  | App     Expr        [Expr]
   | Let     LetType     [Bind]      Expr
   | Multi   [Expr]
   | Delay   Expr
