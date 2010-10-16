@@ -1,16 +1,11 @@
 module FunVM.Syntax
   ( Id
   , Module (..)
-  , modul'
   , Bind (..)
-  , bind
-  , Pattern (..)
-  , pattern
+  , Pat (..)
+  , Val (..)
   , Expr (..)
   , Literal (..)
-  , literal
-  , LetType (..)
-  , letType
   , fv
   ) where
 
@@ -25,43 +20,34 @@ data Module
   = Module Id [Bind]
   deriving Eq
 
--- | Should be named `module', but that's not allowed
-modul' :: (Id -> [Bind] -> a) -> Module -> a
-modul' f (Module x bs) = f x bs
-
--- Value bindings
+-- Value binding
 data Bind
-  = Bind [Pattern] Expr
+  = Bind Pat Expr
   deriving Eq
-
-bind :: ([Pattern] -> Expr -> a) -> Bind -> a
-bind f (Bind ps e) = f ps e
 
 -- | Patterns in lambdas, lets or top level bindings
-data Pattern
-  = ValPattern   Id  Type
-  | TypePattern  Id  Kind
+data Pat
+  = TermPat  Id  Type
+  | TypePat  Id  Kind
   deriving Eq
 
-pattern :: (Id -> Type -> a) 
-             -> (Id -> Kind -> a)
-             -> Pattern
-             -> a
-pattern f _ (ValPattern x t)  = f x t
-pattern _ g (TypePattern x k) = g x k
-
+-- | Values in Weak Head Normal Form
+data Val
+  = Lit    Literal 
+  | Lam    [Pat]  Expr
+  | Delay  Expr
+  deriving Eq
 
 -- | Main expression data type
 data Expr
-  = Lit     Literal
+  = Val     Val
   | Var     Id
-  | Lam     [Pattern]   Expr
-  | App     Expr        [Expr]
-  | Let     LetType     [Bind]      Expr
+  | App     Expr    Expr
+  | Let     [Pat]   Expr  Expr
+  | LetRec  [Bind]  Expr
   | Multi   [Expr]
-  | Delay   Expr
   | Force   Expr
-  | FFI     String      Type
+  | FFI     String  Type
   deriving Eq
 
 -- | Literal integers, characters or strings
@@ -72,45 +58,29 @@ data Literal
   | Type     Type
   deriving Eq
 
-literal :: (Integer -> Type -> a)
-             -> (Char -> a)
-             -> (String -> a)
-             -> (Type -> a)
-             -> Literal
-             -> a
-literal f _ _ _ (Integer x t)  = f x t
-literal _ f _ _ (Char x)       = f x
-literal _ _ f _ (String x)     = f x
-literal _ _ _ f (Type x)       = f x
-
--- | Type of let binding
-data LetType
-  = NonRec
-  | Rec
-  deriving Eq
-
-letType :: a -> a -> LetType -> a
-letType x _ NonRec = x
-letType _ y Rec    = y
-
 -- | Free value variables in expression
 fv :: Expr -> [Id]
-fv (Var     x)       = [x]
-fv (Lit     _)       = []
-fv (App     e  es)   = nub $ concat (fv e : (map fv es))
-fv (Lam     ps e)    = fv e \\ concatMap patvar ps
-fv (Let NonRec bs e) = let bds []      = []
-                           bds (b:bs') = (bds bs' \\ bind (\ps _ -> concatMap patvar ps) b)
-                                             ++ bind (\_ e' -> fv e') b
-                       in nub $ (fv e \\ concatMap (bind (\ps _ -> concatMap patvar ps)) bs)
-                                 ++ bds bs
-fv (Let Rec  bs e)   = (nub $ concat [fv e ++ concatMap (bind (\_ e' -> fv e')) bs])
-                        \\ concatMap (bind (\ps _ -> concatMap patvar ps)) bs
-fv (Delay   e)       = fv e
-fv (Force   e)       = fv e
-fv (Multi   es)      = concatMap fv es
-fv (FFI     _ _)     = []
+fv (Val (Lit     _))    = []
+fv (Val (Lam     ps e)) = fv e \\ map patId ps
+fv (Val (Delay   e))    = fv e
+fv (Var     x)          = [x]
+fv (App     e1 e2)      = fv e1 `union` fv e2
+fv (Let     ps e1 e2)   = (fv e2 \\ map patId ps) `union` fv e1
+fv (LetRec  bs e)       = (foldr union (fv e) (map (fv . bindExpr) bs))
+                            \\ map (patId . bindPat) bs
+fv (Force   e)          = fv e
+fv (Multi   es)         = concatMap fv es
+fv (FFI     _ _)        = []
 
-patvar :: Pattern -> [Id]
-patvar = pattern (\v _ -> [v]) (\_ _ -> [])
+-- Small helper functions
+
+patId :: Pat -> Id
+patId (TermPat x _) = x
+patId (TypePat x _) = x
+
+bindPat :: Bind -> Pat
+bindPat (Bind p _) = p
+
+bindExpr :: Bind -> Expr
+bindExpr (Bind _ e) = e
 
