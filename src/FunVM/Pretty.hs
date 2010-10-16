@@ -1,4 +1,7 @@
 {-# OPTIONS_GHC -fno-warn-orphans #-} 
+
+-- This module should be rewritten to use PP combinators!
+
 module FunVM.Pretty
   (pretty) where
 
@@ -19,34 +22,38 @@ instance Pretty Module where
     . inter nl (map (pr pre) bs)
 
 instance Pretty Bind where
-  pr pre (Bind ps e) =
-      pre . tuple (map (pr pre) ps) . nl
-    . s " = " . pr (pre . s "   ") e . nl
+  pr pre (Bind p e) =
+      pre . pr pre p . nl
+    . pre . s "  = " . pr ((indent 1 pre) . s "   ") e
 
-instance Pretty Pattern where
-  pr pre (ValPattern  x t) = s x . s " : " . pr pre t
-  pr pre (TypePattern x t) = s x . s " :: " . pr pre t
+instance Pretty Pat where
+  pr pre (TermPat x t) = s x . s " : " . pr pre t
+  pr pre (TypePat x t) = s x . s " :: " . pr pre t
 
 instance Pretty Expr where
+  pr pre (Val (Lit l))                = pr pre l
+  pr pre (Val (Lam ps e@(Var {})))    = s "\\" . tuple (map (pr pre) ps)
+                                         . s " -> " . pr pre e
+  pr pre (Val (Lam ps e@(Val Lam{}))) = s "\\" . tuple (map (pr pre) ps)
+                                         . s " -> " . pr pre e
+  pr pre (Val (Lam ps e))             = s "\\" . tuple (map (pr pre) ps)
+                                         . s " ->" . nl . pre . s "  " . pr (indent 2 pre) e
+  pr pre (Val (Delay (Multi es)))     = s "{" . commas (map (pr (indent 1 pre)) es) . s "}"
+  pr pre (Val (Delay e))              = s "{" . pr (indent 1 pre) e . s "}"
   pr _   (Var x)             = s x
-  pr pre (Lit l)             = pr pre l
-  pr pre (Lam ps e@(Var {})) = s "\\" . tuple (map (pr pre) ps)
-                                . s " -> " . pr pre e
-  pr pre (Lam ps e@(Lam {})) = s "\\" . tuple (map (pr pre) ps)
-                                . s " -> " . pr pre e
-  pr pre (Lam ps e)          = s "\\" . tuple (map (pr pre) ps)
-                                . s " ->" . nl . pre . s "  " . pr (indent 2 pre) e
-  pr pre (App f@(App {}) as) = pr pre f . sp . tuple (map (pr pre) as)
-  pr pre (App f@(Var {}) as) = pr pre f . sp . tuple (map (pr pre) as)
-  pr pre (App f as)          = paren (pr pre f) . nl
-                                . pre . sp . tuple (map (pr pre) as)
-  pr pre (Let t bs e)        = s "let " . pr pre t . nl
-                                . inter nl (map (pr (indent 2 pre)) bs)
-                                . s " in" . nl
-                                . pr pre e
+  pr pre (App f@(App {}) a)  = pr pre f . sp . pr pre a
+  pr pre (App f@(Var {}) a)  = pr pre f . sp . pr pre a
+  pr pre (App f a)           = paren (pr pre f) . nl . pre . sp . pr pre a
+  pr pre l@(Let{})           = s "let " . nl . f l
+    where
+      f (Let ps e1 e2) = indent 2 pre . tuple (map (pr $ indent 2 pre) ps) . nl
+                           . pre . s "    = " . pr (indent 7 pre) e1 . nl
+                           . f e2
+      f e              = pre . s "in " . pr (indent 3 pre) e
+  pr pre (LetRec bs e)      = s "letrec " . nl
+                                . inter nl (map (pr (indent 2 pre)) bs) . nl
+                                . pre . s "in " . pr (indent 3 pre) e
   pr pre (Multi es)          = tuple (map (pr pre) es)
-  pr pre (Delay (Multi es))  = s "{" . commas (map (pr (indent 1 pre)) es) . s "}"
-  pr pre (Delay e)           = s "{" . pr (indent 1 pre) e . s "}"
   pr pre (Force e)           = s "|" . pr (indent 1 pre) e . s "|"
   pr pre (FFI x t)           = s "foreign " . shows x . s " : " . pr pre t
 
@@ -55,10 +62,6 @@ instance Pretty Literal where
   pr _   (Char c)       = shows c
   pr _   (String x)     = shows x
   pr pre (Type t)       = pr pre t
-
-instance Pretty LetType where
-  pr _ NonRec = id
-  pr _ Rec    = s " rec"
 
 instance Pretty Type where
   pr pre (Base b)    = pr pre b
@@ -112,16 +115,13 @@ instance Show Module where
 instance Show Bind where
   show = pretty
 
-instance Show Pattern where
+instance Show Pat where
   show = pretty
 
 instance Show Expr where
   show = pretty
 
 instance Show Literal where
-  show = pretty
-
-instance Show LetType where
   show = pretty
 
 instance Show Type where

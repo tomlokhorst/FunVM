@@ -4,8 +4,6 @@ module FunVM.Types
   , Type (..)
   , Base (..)
   , Kind (..)
-  , int32
-  , char
   ) where
 
 -- | Type Variable
@@ -37,12 +35,4 @@ data Base
 data Kind
   = Star
   deriving Eq
-
--- | Convenience functions
-
-int32 :: Type
-int32 = Base $ Int 32
-
-char :: Type
-char = Base Character
 
