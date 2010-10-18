@@ -43,10 +43,10 @@ data Expr
   = Val     Val
   | Var     Id
   | App     Expr    Expr
-  | Let     [Pat]   Expr  Expr
-  | LetRec  [Bind]  Expr
   | Multi   [Expr]
   | Force   Expr
+  | Let     [Pat]   Expr  Expr
+  | LetRec  [Bind]  Expr
   | FFI     String  Type
   deriving Eq
 
@@ -65,11 +65,11 @@ fv (Val (Lam     ps e)) = fv e \\ map patId ps
 fv (Val (Delay   e))    = fv e
 fv (Var     x)          = [x]
 fv (App     e1 e2)      = fv e1 `union` fv e2
+fv (Force   e)          = fv e
+fv (Multi   es)         = concatMap fv es
 fv (Let     ps e1 e2)   = (fv e2 \\ map patId ps) `union` fv e1
 fv (LetRec  bs e)       = (foldr union (fv e) (map (fv . bindExpr) bs))
                             \\ map (patId . bindPat) bs
-fv (Force   e)          = fv e
-fv (Multi   es)         = concatMap fv es
 fv (FFI     _ _)        = []
 
 -- Small helper functions

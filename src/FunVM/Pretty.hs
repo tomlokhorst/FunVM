@@ -44,6 +44,8 @@ instance Pretty Expr where
   pr pre (App f@(App {}) a)  = pr pre f . sp . pr pre a
   pr pre (App f@(Var {}) a)  = pr pre f . sp . pr pre a
   pr pre (App f a)           = paren (pr pre f) . nl . pre . sp . pr pre a
+  pr pre (Multi es)          = tuple (map (pr pre) es)
+  pr pre (Force e)           = s "|" . pr (indent 1 pre) e . s "|"
   pr pre l@(Let{})           = s "let " . nl . f l
     where
       f (Let ps e1 e2) = indent 2 pre . tuple (map (pr $ indent 2 pre) ps) . nl
@@ -53,8 +55,6 @@ instance Pretty Expr where
   pr pre (LetRec bs e)      = s "letrec " . nl
                                 . inter nl (map (pr (indent 2 pre)) bs) . nl
                                 . pre . s "in " . pr (indent 3 pre) e
-  pr pre (Multi es)          = tuple (map (pr pre) es)
-  pr pre (Force e)           = s "|" . pr (indent 1 pre) e . s "|"
   pr pre (FFI x t)           = s "foreign " . shows x . s " : " . pr pre t
 
 instance Pretty Literal where
