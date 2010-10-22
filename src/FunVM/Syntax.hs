@@ -1,5 +1,6 @@
 module FunVM.Syntax
   ( Id
+  , Group
   , Module (..)
   , Bind (..)
   , Pat (..)
@@ -15,9 +16,12 @@ import FunVM.Types
 -- | Identifier for variables and other names
 type Id = String
 
+-- | Group of mutually dependent bindings
+type Group = [Bind]
+
 -- | Module definition
 data Module
-  = Module Id [Bind]
+  = Module Id [Group]
   deriving Eq
 
 -- Value binding

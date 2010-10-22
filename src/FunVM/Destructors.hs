@@ -9,8 +9,8 @@ import FunVM.Syntax
 import FunVM.Types
 
 -- | Should be named `module', but that's not allowed
-modul' :: (Id -> [Bind] -> a) -> Module -> a
-modul' f (Module x bs) = f x bs
+modul' :: (Id -> [Group] -> a) -> Module -> a
+modul' f (Module x bss) = f x bss
 
 bind :: (Pat -> Expr -> a) -> Bind -> a
 bind f (Bind p e) = f p e

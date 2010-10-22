@@ -17,9 +17,9 @@ pretty :: (Pretty a) => a -> String
 pretty x = pr id x ""
 
 instance Pretty Module where
-  pr pre (Module x bs) =
+  pr pre (Module x bss) =
       s "module " . s x . nl . nl
-    . inter nl (map (pr pre) bs)
+    . inter nl (map (pr pre) (concat bss))
 
 instance Pretty Bind where
   pr pre (Bind p e) =
