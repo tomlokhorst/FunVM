@@ -20,7 +20,7 @@ instance Pretty Module where
       s "module " . s x . nl
     . inter nl (map (\i -> s "import " . s i) is)
     . nl
-    . inter nl (map (pr pre) (concat bss))
+    . inter (nl . nl) (map (pr pre) (concat bss))
 
 instance Pretty ValBind where
   pr pre (Bind p e) =
@@ -28,8 +28,9 @@ instance Pretty ValBind where
     . pre . s "  = " . pr ((indent 1 pre) . s "   ") e
 
 instance Pretty Bind where
-  pr pre (TermPat x t) = s x . s " : " . pr pre t
-  pr pre (TypePat x t) = s x . s " :: " . pr pre t
+  pr pre (TermPat "_" t) = pr pre t
+  pr pre (TermPat x   t) = s x . s " : " . pr pre t
+  pr pre (TypePat x   t) = s x . s " :: " . pr pre t
 
 instance Pretty Val where
   pr pre (Lit l)                = pr pre l
@@ -41,14 +42,14 @@ instance Pretty Val where
                                    . s " ->" . nl . pre . s "  " . pr (indent 2 pre) e
   pr pre (Delay (Multi es))     = s "{" . commas (map (pr (indent 1 pre)) es) . s "}"
   pr pre (Delay e)              = s "{" . pr (indent 1 pre) e . s "}"
-  pr pre (FFI x t)              = s "foreign " . shows x . s " : " . pr pre t
+  pr pre (FFI x t)              = s "foreign " . s x . s " : " . pr pre t
 
 instance Pretty Expr where
   pr pre (Val v)             = pr pre v
   pr _   (Var x)             = s x
   pr pre (App f@(App {}) a)  = pr pre f . sp . pr pre a
   pr pre (App f@(Var {}) a)  = pr pre f . sp . pr pre a
-  pr pre (App f a)           = paren (pr pre f) . nl . pre . sp . pr pre a
+  pr pre (App f a)           = paren (pr pre f) . nl . pre . sp . sp . pr (indent 2 pre) a
   pr pre (Multi es)          = tuple (map (pr pre) es)
   pr pre (Force e)           = s "|" . pr (indent 1 pre) e . s "|"
   pr pre l@(Let{})           = s "let " . nl . f l
