@@ -1,14 +1,17 @@
 module FunVM.Build
-  ( int32
+  ( (~>)
+  , int32
   , character
   , int
   ) where
 
 import FunVM.Syntax
-import FunVM.Types
 
 
 -- Type convenience functions
+
+(~>) :: [Bind] -> Types -> Type
+(~>) = Fun
 
 int32 :: Type
 int32 = Base $ Int 32

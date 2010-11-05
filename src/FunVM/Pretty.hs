@@ -6,7 +6,6 @@ module FunVM.Pretty
   (pretty) where
 
 import FunVM.Syntax
-import FunVM.Types
 
 import Data.List
 
@@ -17,29 +16,34 @@ pretty :: (Pretty a) => a -> String
 pretty x = pr id x ""
 
 instance Pretty Module where
-  pr pre (Module x bss) =
-      s "module " . s x . nl . nl
+  pr pre (Module x is bss) =
+      s "module " . s x . nl
+    . inter nl (map (\i -> s "import " . s i) is)
+    . nl
     . inter nl (map (pr pre) (concat bss))
 
-instance Pretty Bind where
+instance Pretty ValBind where
   pr pre (Bind p e) =
       pre . pr pre p . nl
     . pre . s "  = " . pr ((indent 1 pre) . s "   ") e
 
-instance Pretty Pat where
+instance Pretty Bind where
   pr pre (TermPat x t) = s x . s " : " . pr pre t
   pr pre (TypePat x t) = s x . s " :: " . pr pre t
 
+instance Pretty Val where
+  pr pre (Lit l)                = pr pre l
+  pr pre (Lam ps e@(Var {}))    = s "\\" . tuple (map (pr pre) ps)
+                                   . s " -> " . pr pre e
+  pr pre (Lam ps e@(Val Lam{})) = s "\\" . tuple (map (pr pre) ps)
+                                   . s " -> " . pr pre e
+  pr pre (Lam ps e)             = s "\\" . tuple (map (pr pre) ps)
+                                   . s " ->" . nl . pre . s "  " . pr (indent 2 pre) e
+  pr pre (Delay (Multi es))     = s "{" . commas (map (pr (indent 1 pre)) es) . s "}"
+  pr pre (Delay e)              = s "{" . pr (indent 1 pre) e . s "}"
+
 instance Pretty Expr where
-  pr pre (Val (Lit l))                = pr pre l
-  pr pre (Val (Lam ps e@(Var {})))    = s "\\" . tuple (map (pr pre) ps)
-                                         . s " -> " . pr pre e
-  pr pre (Val (Lam ps e@(Val Lam{}))) = s "\\" . tuple (map (pr pre) ps)
-                                         . s " -> " . pr pre e
-  pr pre (Val (Lam ps e))             = s "\\" . tuple (map (pr pre) ps)
-                                         . s " ->" . nl . pre . s "  " . pr (indent 2 pre) e
-  pr pre (Val (Delay (Multi es)))     = s "{" . commas (map (pr (indent 1 pre)) es) . s "}"
-  pr pre (Val (Delay e))              = s "{" . pr (indent 1 pre) e . s "}"
+  pr pre (Val v)             = pr pre v
   pr _   (Var x)             = s x
   pr pre (App f@(App {}) a)  = pr pre f . sp . pr pre a
   pr pre (App f@(Var {}) a)  = pr pre f . sp . pr pre a
@@ -69,9 +73,7 @@ instance Pretty Type where
                         . s " -> " . tuple (map (pr pre) rs)
   pr pre (Lazy [t])  = s "{" . pr pre t . s "}"
   pr pre (Lazy ts)   = s "{" . inter (s ", ") (map (pr pre) ts) . s "}"
-  pr pre (Quant x k) = s x . s " :: " . pr pre k
   pr _   (TyVar x)   = s x
-  pr _   (Any)       = s "_"
 
 instance Pretty Base where
   pr _ (Int x)     = s ("int" ++ show x)
@@ -112,10 +114,10 @@ s = showString
 instance Show Module where
   show = pretty
 
-instance Show Bind where
+instance Show ValBind where
   show = pretty
 
-instance Show Pat where
+instance Show Bind where
   show = pretty
 
 instance Show Expr where
