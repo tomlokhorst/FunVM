@@ -1,71 +1,78 @@
 module Test where
 
+import FunVM.Build
 import FunVM.Pretty ()
 import FunVM.Syntax
-import FunVM.Types
 
 -- Test module
 
+
+arith :: Type
+arith = params [int32, int32] ~> [int32]
+
+primIf :: Expr
+primIf = Val $ FFI "primIf"
+  ((params [int32] ++ [TypePat "c" Star] ++ params [Lazy [TyVar "c"], Lazy [TyVar "c"]])
+      ~> [Lazy [TyVar "c"]])
+
 test :: Module
 test =
-  Module "Prelude"
-    [ Bind [ ValPattern "add" ([int32, int32] `Fun` [int32]) ]
-           (FFI "primAddInt32" ([int32, int32] `Fun` [int32]))
-    , Bind [ ValPattern "sub" ([int32, int32] `Fun` [int32])
-           , ValPattern "mul" ([int32, int32] `Fun` [int32])
-           ]
-           (Multi
-              [ (FFI "primAddInt32" ([int32, int32] `Fun` [int32]))
-              , (FFI "primAddInt32" ([int32, int32] `Fun` [int32]))
-              ])
-    , Bind [ ValPattern "if"
-               ([int32, Quant "a" Star , Lazy [TyVar "a"], Lazy [TyVar "a"]]
-                  `Fun` [TyVar "a"])
-           ]
-           (Lam [ ValPattern  "p" int32
-                , TypePattern "b" Star
-                , ValPattern  "x" (Lazy [TyVar "b"])
-                , ValPattern  "y" (Lazy [TyVar "b"])
-                ]
-                (Force ((FFI "primIf" ([ int32
-                                       , Quant "c" Star
-                                       , Lazy [TyVar "c"]
-                                       , Lazy [TyVar "c"]
-                                       ] `Fun` [Lazy [TyVar "c"]])
-                        ) `App` [Var "p", Var "b", Var "x", Var "y"])))
-    , Bind [ ValPattern "const'"
-               ([Quant "a" Star, Quant "b" Star, TyVar "a", Lazy [TyVar "a"]]
-                 `Fun` [TyVar "a"]) 
-           ]
-           (Lam [ TypePattern "c" Star
-                , TypePattern "d" Star
-                , ValPattern "x" (TyVar "c")
-                , ValPattern "y" (Lazy [TyVar "d"])
-                ]
-                (Var "x"))
-    , Bind [ ValPattern "const"
-               ([Quant "a" Star, Quant "b" Star]
-                 `Fun` [[TyVar "a"]
-                        `Fun` [[Lazy [TyVar "a"]]
-                               `Fun` [TyVar "a"]]]) 
-           ]
-           (Lam [ TypePattern "c" Star
-                , TypePattern "d" Star
-                ]
-                (Lam [ValPattern "x" (TyVar "c")]
-                     (Lam [ValPattern "y" (Lazy [TyVar "d"])]
-                          (Var "x"))))
-    , Bind [ ValPattern "x" int32 ]
-           (Var "const" `App` [ Lit $ Type int32
-                              , Lit $ Type (Base Character)
-                              ]
-                        `App` [Lit (Int 3 $ int32)]
-                        `App` [Lit (Char 'c')])
-    , Bind [ ValPattern "y" int32 ]
-           (Lam [ValPattern "x" (Base Character)] (Var "x")
-             `App` [Lit (Char 'c')])
-    , Bind [ ValPattern "main" int32 ]
-       (Lit (Int 42 $ int32))
+  Module "Prelude" []
+    [ [ Bind (TermPat "add" arith)
+             (FFI "primAddInt32" arith)
+      ]
+    , [ Bind (TermPat "sub" arith)
+             (FFI "primSubInt32" arith)
+      ]
+    , [ Bind (TermPat "mul" arith)
+             (FFI "primMulInt32" arith)
+      ]
+    , [ Bind (TermPat "if" ((params [int32]
+                               ++ [TypePat "a" Star]
+                               ++ params [Lazy [TyVar "a"], Lazy [TyVar "a"]]
+                            ) ~> [int32]))
+             (Lam [ TermPat "p" int32
+                  , TypePat "a" Star
+                  , TermPat "x" (Lazy [TyVar "a"])
+                  , TermPat "y" (Lazy [TyVar "a"])
+                  ]
+                  (Force $ primIf @@ [Var "p", Var "a", Var "x", Var "y"]))
+      ]
+    , [ Bind (TermPat "const'" (([TypePat "a" Star, TypePat "b" Star]
+                                    ++ params [TyVar "a", Lazy [TyVar "b"]]
+                                ) ~> [TyVar "a"]))
+             (Lam [ TypePat "a" Star
+                  , TypePat "b" Star
+                  , TermPat "x" (TyVar "a")
+                  , TermPat "y" (Lazy [TyVar "b"])
+                  ]
+                  (Var "x"))
+      ]
+    , [ Bind (TermPat "const" ([TypePat "a" Star, TypePat "b" Star]
+                                  ~> [params [Lazy [TyVar "a"]]
+                                        ~> [params [Lazy [TyVar "b"]]
+                                              ~> [TyVar "a"]]]))
+             (Lam [ TypePat "a" Star
+                  , TypePat "b" Star
+                  ]
+                  (Val $ Lam [TermPat "x" (Lazy [TyVar "a"])]
+                             (Val $ Lam [TermPat "y" (Lazy [TyVar "b"])]
+                                        (Force $ Var "x"))))
+      , Bind (TermPat "x" (Lazy [int32]))
+             (Delay $ Var "const" @@ [ Val $ Lit $ Type int32
+                                     , Val $ Lit $ Type character
+                                     ]
+                                  @@ [Val $ Lit (Integer 3 int32)]
+                                  @@ [Val $ Lit (Char 'c')])
+      , Bind (TermPat "y" (Lazy [int32]))
+             (Delay $ Var "const" @@ [ Val $ Lit $ Type int32
+                                     , Val $ Lit $ Type character
+                                     ]
+                                  @@ [Val $ Lit (Integer 3 int32)]
+                                  @@ [Val $ Lit (Char 'c')])
+      , Bind (TermPat "main" (Lazy [int32]))
+             (Delay $ Val $ Lit (Integer 42 int32))
+      ]
     ]
 
 main :: IO ()
