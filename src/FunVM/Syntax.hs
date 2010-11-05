@@ -21,12 +21,16 @@ type Group = [Bind]
 
 -- | Module definition
 data Module
-  = Module Id [Group]
+  = Module
+      { name    :: Id
+      , imports :: [Id]
+      , bgroups :: [Group]
+      }
   deriving Eq
 
 -- Value binding
 data Bind
-  = Bind Pat Expr
+  = Bind Pat Val
   deriving Eq
 
 -- | Patterns in lambdas, lets or top level bindings
@@ -72,7 +76,7 @@ fv (App     e1 e2)      = fv e1 `union` fv e2
 fv (Force   e)          = fv e
 fv (Multi   es)         = concatMap fv es
 fv (Let     ps e1 e2)   = (fv e2 \\ map patId ps) `union` fv e1
-fv (LetRec  bs e)       = (foldr union (fv e) (map (fv . bindExpr) bs))
+fv (LetRec  bs e)       = (foldr union (fv e) (map (val (const []) (const fv) fv . bindVal) bs))
                             \\ map (patId . bindPat) bs
 fv (FFI     _ _)        = []
 
@@ -85,6 +89,11 @@ patId (TypePat x _) = x
 bindPat :: Bind -> Pat
 bindPat (Bind p _) = p
 
-bindExpr :: Bind -> Expr
-bindExpr (Bind _ e) = e
+bindVal :: Bind -> Val
+bindVal (Bind _ v) = v
+
+val :: (Literal -> a) -> ([Pat] -> Expr -> a) -> (Expr -> a) -> Val -> a
+val f _ _ (Lit l)    = f l
+val _ g _ (Lam ps e) = g ps e
+val _ _ h (Delay e)  = h e
 
