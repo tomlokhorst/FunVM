@@ -87,7 +87,7 @@ data Literal
   deriving Eq
 
 -- | Group of mutually dependent bindings
-type Group = [Bind]
+type Group = [ValBind]
 
 -- | Module definition
 data Module
