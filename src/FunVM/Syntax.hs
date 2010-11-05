@@ -64,18 +64,18 @@ data Val
   = Lit    Literal 
   | Lam    [Bind]  Expr
   | Delay  Expr
+  | FFI    String  Type
   deriving Eq
 
 -- | Main expression data type
 data Expr
   = Val     Val
   | Var     Id
-  | App     Expr    Expr
+  | App     Expr       Expr
   | Multi   [Expr]
   | Force   Expr
-  | Let     [Bind]   Expr  Expr
+  | Let     [Bind]     Expr  Expr
   | LetRec  [ValBind]  Expr
-  | FFI     String  Type
   deriving Eq
 
 -- | Literal integers, characters or strings
@@ -103,14 +103,15 @@ fv :: Expr -> [Id]
 fv (Val (Lit     _))    = []
 fv (Val (Lam     ps e)) = fv e \\ map patId ps
 fv (Val (Delay   e))    = fv e
+fv (Val (FFI     _ _))  = []
 fv (Var     x)          = [x]
 fv (App     e1 e2)      = fv e1 `union` fv e2
 fv (Force   e)          = fv e
 fv (Multi   es)         = concatMap fv es
 fv (Let     ps e1 e2)   = (fv e2 \\ map patId ps) `union` fv e1
-fv (LetRec  bs e)       = (foldr union (fv e) (map (val (const []) (const fv) fv . valBindVal) bs))
-                            \\ map (patId . valBindBind) bs
-fv (FFI     _ _)        = []
+fv (LetRec  bs e)       =
+  (foldr union (fv e) (map (val (const []) (const fv) fv (\_ _ -> []) . valBindVal) bs))
+    \\ map (patId . valBindBind) bs
 
 -- Small helper functions
 
@@ -124,8 +125,15 @@ valBindBind (Bind p _) = p
 valBindVal :: ValBind -> Val
 valBindVal (Bind _ v) = v
 
-val :: (Literal -> a) -> ([Bind] -> Expr -> a) -> (Expr -> a) -> Val -> a
-val f _ _ (Lit l)    = f l
-val _ g _ (Lam ps e) = g ps e
-val _ _ h (Delay e)  = h e
+val
+  :: (Literal -> a)
+  -> ([Bind] -> Expr -> a)
+  -> (Expr -> a)
+  -> (String -> Type -> a)
+  -> Val
+  -> a
+val f _ _ _ (Lit l)    = f l
+val _ f _ _ (Lam ps e) = f ps e
+val _ _ f _ (Delay e)  = f e
+val _ _ _ f (FFI x t)  = f x t
 
