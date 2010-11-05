@@ -41,6 +41,7 @@ instance Pretty Val where
                                    . s " ->" . nl . pre . s "  " . pr (indent 2 pre) e
   pr pre (Delay (Multi es))     = s "{" . commas (map (pr (indent 1 pre)) es) . s "}"
   pr pre (Delay e)              = s "{" . pr (indent 1 pre) e . s "}"
+  pr pre (FFI x t)              = s "foreign " . shows x . s " : " . pr pre t
 
 instance Pretty Expr where
   pr pre (Val v)             = pr pre v
@@ -59,7 +60,6 @@ instance Pretty Expr where
   pr pre (LetRec bs e)      = s "letrec " . nl
                                 . inter nl (map (pr (indent 2 pre)) bs) . nl
                                 . pre . s "in " . pr (indent 3 pre) e
-  pr pre (FFI x t)           = s "foreign " . shows x . s " : " . pr pre t
 
 instance Pretty Literal where
   pr pre (Integer x t)  = s "(" . shows x . s " : " . pr pre t . s ")"
