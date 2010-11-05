@@ -23,6 +23,9 @@ instance Pretty Module where
     . inter (nl . nl) (map (pr pre) (concat bss))
 
 instance Pretty ValBind where
+  pr pre (Bind (TermPat x (Fun _ rts)) (Lam ps e)) =
+      s "fun " . s x . sp . tuple (map (pr pre) ps) . s " -> " . tuple (map (pr pre) rts) . nl
+    . s " = " . pr (indent 3 pre) e
   pr pre (Bind p e) =
       pre . pr pre p . nl
     . pre . s "  = " . pr ((indent 1 pre) . s "   ") e
