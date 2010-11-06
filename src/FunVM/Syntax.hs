@@ -101,23 +101,23 @@ data Module
 -- | Free value variables in expression
 fv :: Expr -> [Id]
 fv (Val (Lit     _))    = []
-fv (Val (Lam     ps e)) = fv e \\ map patId ps
+fv (Val (Lam     ps e)) = fv e \\ map bindId ps
 fv (Val (Delay   e))    = fv e
 fv (Val (FFI     _ _))  = []
 fv (Var     x)          = [x]
 fv (App     e1 e2)      = fv e1 `union` fv e2
 fv (Force   e)          = fv e
 fv (Multi   es)         = concatMap fv es
-fv (Let     ps e1 e2)   = (fv e2 \\ map patId ps) `union` fv e1
+fv (Let     ps e1 e2)   = (fv e2 \\ map bindId ps) `union` fv e1
 fv (LetRec  bs e)       =
   (foldr union (fv e) (map (val (const []) (const fv) fv (\_ _ -> []) . valBindVal) bs))
-    \\ map (patId . valBindBind) bs
+    \\ map (bindId . valBindBind) bs
 
 -- Small helper functions
 
-patId :: Bind -> Id
-patId (TermPat x _) = x
-patId (TypePat x _) = x
+bindId :: Bind -> Id
+bindId (TermPat x _) = x
+bindId (TypePat x _) = x
 
 valBindBind :: ValBind -> Bind
 valBindBind (Bind p _) = p

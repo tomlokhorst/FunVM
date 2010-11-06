@@ -1,26 +1,22 @@
 module FunVM.Destructors
   ( modul'
+  , valBind
   , bind
-  , pat
   , literal
   ) where
 
 import FunVM.Syntax
-import FunVM.Types
 
 -- | Should be named `module', but that's not allowed
-modul' :: (Id -> [Group] -> a) -> Module -> a
-modul' f (Module x bss) = f x bss
+modul' :: (Id -> [Id] -> [Group] -> a) -> Module -> a
+modul' f (Module x is bss) = f x is bss
 
-bind :: (Pat -> Expr -> a) -> Bind -> a
-bind f (Bind p e) = f p e
+valBind :: (Bind -> Val -> a) -> ValBind -> a
+valBind f (Bind p v) = f p v
 
-pat :: (Id -> Type -> a) 
-         -> (Id -> Kind -> a)
-         -> Pat
-         -> a
-pat f _ (TermPat x t)  = f x t
-pat _ g (TypePat x k) = g x k
+bind :: (Id -> Type -> a) -> (Id -> Kind -> a) -> Bind -> a
+bind f _ (TermPat x t)  = f x t
+bind _ g (TypePat x k) = g x k
 
 literal :: (Integer -> Type -> a)
              -> (Char -> a)
