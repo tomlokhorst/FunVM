@@ -22,7 +22,7 @@ data Value
   = ValBase   Literal
   | ValFun    Env [Bind] Expr
   | ValThunk  Env Expr
-  | ValFFI    String
+  | ValPrim   String
   deriving (Eq, Show)
 
 type Env = [(Id, Value)]
@@ -32,7 +32,7 @@ val :: Env -> Val -> Value
 val _   (Lit   l)    = ValBase l
 val env (Lam   ps e) = ValFun (closureEnv env e) ps e
 val env (Delay e)    = ValThunk (closureEnv env e) e
-val _   (FFI   s _)  = ValFFI s
+val _   (Prim  s _)  = ValPrim s
 
 eval :: Env -> Expr -> Eval Values
 eval env (Val v)            = return [val env v]
@@ -42,7 +42,7 @@ eval env (Var x)            = maybe (throwError $ "Variable '" ++ x ++ "' not in
 eval env (App e es)         = do
   f <- eval env e
   case f of
-    [ValFFI s] -> do
+    [ValPrim s] -> do
       args <- eval env es
       ffi s args
     [ValFun env' ps body] -> do
@@ -87,7 +87,7 @@ ffi "primMul" [ValBase (Integer x _), ValBase (Integer y _)] = intVal (x * y)
 ffi "primEq"  [ValBase (Integer x _), ValBase (Integer y _)] = intVal (if x == y then 1 else 0)
 ffi "primOr"  [ValBase (Integer x _), ValBase (Integer y _)] = intVal (if x /= 0 || y /= 0 then 1 else 0)
 ffi "primIf"  [ValBase (Integer p _), _, x, y]  = return $ if p == 0 then [y] else [x]
-ffi s _  = throwError $ "Unknown FFI call `" ++ s ++ "'"
+ffi s _  = throwError $ "Unknown Pim call `" ++ s ++ "'"
 
 intVal :: Integer -> Eval Values
 intVal x = return [ValBase $ Integer x int32]

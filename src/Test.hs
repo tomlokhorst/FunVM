@@ -11,7 +11,7 @@ arith :: Type
 arith = params [int32, int32] ~> [int32]
 
 primIf :: Expr
-primIf = Val $ FFI "primIf"
+primIf = Val $ Prim "primIf"
   ((params [int32] ++ [TypePat "c" Star] ++ params [Lazy [TyVar "c"], Lazy [TyVar "c"]])
       ~> [Lazy [TyVar "c"]])
 
@@ -19,13 +19,13 @@ test :: Module
 test =
   Module "Prelude" []
     [ [ Bind (TermPat "add" arith)
-             (FFI "primAddInt32" arith)
+             (Prim "primAddInt32" arith)
       ]
     , [ Bind (TermPat "sub" arith)
-             (FFI "primSubInt32" arith)
+             (Prim "primSubInt32" arith)
       ]
     , [ Bind (TermPat "mul" arith)
-             (FFI "primMulInt32" arith)
+             (Prim "primMulInt32" arith)
       ]
     , [ Bind (TermPat "if" ((params [int32]
                                ++ [TypePat "a" Star]

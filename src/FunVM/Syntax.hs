@@ -64,7 +64,7 @@ data Val
   = Lit    Literal 
   | Lam    [Bind]  Expr
   | Delay  Expr
-  | FFI    String  Type
+  | Prim   String  Type
   deriving Eq
 
 -- | Main expression data type
@@ -103,7 +103,7 @@ fv :: Expr -> [Id]
 fv (Val (Lit     _))    = []
 fv (Val (Lam     ps e)) = fv e \\ map bindId ps
 fv (Val (Delay   e))    = fv e
-fv (Val (FFI     _ _))  = []
+fv (Val (Prim    _ _))  = []
 fv (Var     x)          = [x]
 fv (App     e1 e2)      = fv e1 `union` fv e2
 fv (Force   e)          = fv e
@@ -135,5 +135,5 @@ val
 val f _ _ _ (Lit l)    = f l
 val _ f _ _ (Lam ps e) = f ps e
 val _ _ f _ (Delay e)  = f e
-val _ _ _ f (FFI x t)  = f x t
+val _ _ _ f (Prim x t) = f x t
 
