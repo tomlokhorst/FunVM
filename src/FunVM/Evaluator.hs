@@ -92,12 +92,12 @@ mergeEnvs :: Env -> Env -> Env
 mergeEnvs env1 env2 = nubBy ((==) `on` fst) (env1 ++ env2)
 
 ffi :: String -> Values -> Eval Values
-ffi "primAdd" [ValBase (Integer x _), ValBase (Integer y _)] = intVal (x + y)
-ffi "primSub" [ValBase (Integer x _), ValBase (Integer y _)] = intVal (x - y)
-ffi "primMul" [ValBase (Integer x _), ValBase (Integer y _)] = intVal (x * y)
-ffi "primEq"  [ValBase (Integer x _), ValBase (Integer y _)] = intVal (if x == y then 1 else 0)
-ffi "primOr"  [ValBase (Integer x _), ValBase (Integer y _)] = intVal (if x /= 0 || y /= 0 then 1 else 0)
-ffi "primIf"  [ValBase (Integer p _), _, x, y]  = return $ if p == 0 then [y] else [x]
+ffi "primAddInt32" [ValBase (Integer x _), ValBase (Integer y _)] = intVal (x + y)
+ffi "primSubInt32" [ValBase (Integer x _), ValBase (Integer y _)] = intVal (x - y)
+ffi "primMulInt32" [ValBase (Integer x _), ValBase (Integer y _)] = intVal (x * y)
+ffi "primEqInt32"  [ValBase (Integer x _), ValBase (Integer y _)] = intVal (if x == y then 1 else 0)
+ffi "primOrInt32"  [ValBase (Integer x _), ValBase (Integer y _)] = intVal (if x /= 0 || y /= 0 then 1 else 0)
+ffi "primIfInt32"  [ValBase (Integer p _), _, x, y]  = return $ if p == 0 then [y] else [x]
 ffi s _  = throwError $ "Unknown Pim call `" ++ s ++ "'"
 
 intVal :: Integer -> Eval Values

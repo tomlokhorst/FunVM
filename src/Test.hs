@@ -1,6 +1,7 @@
 module Test where
 
 import FunVM.Build
+import FunVM.Evaluator
 import FunVM.Pretty ()
 import FunVM.Syntax
 
@@ -11,7 +12,7 @@ arith :: Type
 arith = params [int32, int32] ~> [int32]
 
 primIf :: Expr
-primIf = Val $ Prim "primIf"
+primIf = Val $ Prim "primIfInt32"
   ((params [int32] ++ [TypePat "c" Star] ++ params [Lazy [TyVar "c"], Lazy [TyVar "c"]])
       ~> [Lazy [TyVar "c"]])
 
@@ -71,6 +72,29 @@ test =
              (Delay $ Val $ int 42)
       ]
     ]
+
+test2 :: Expr
+test2 = lets [ ( [TermPat "add" arith]
+               , (Val $ Prim "primAddInt32" arith)
+               )
+             , ( [TermPat "sub" arith]
+               , (Val $ Prim "primSubInt32" arith)
+               )
+             , ( [TermPat "add3" $ params [int32, int32, int32] `Fun` [int32]]
+               , (Val $ Lam [TermPat "x" int32, TermPat "y" int32, TermPat "z" int32]
+                            (Var "add" @@ [Var "add" @@ [Var "x", Var "y"], Var "z"]))
+               )
+             , ( [TermPat "bar" $ params [int32] `Fun` [int32, int32]]
+               , (Val $ Lam [TermPat "x" int32]
+                            (Multi [ Var "add" @@ [Var "x", Val $ int 1]
+                                   , Var "sub" @@ [Var "x", Val $ int 1]
+                                   ]))
+               )
+             ]
+             (Multi [ Var "add3" @@ [Val $ int 1, Val $ int 2, Val $ int 3]
+                    , Var "add3" @@ [Multi [Val $ int 1, Val $ int 2], Val $ int 3]
+                    , Var "add3" @@ [Var "bar" @@ [Val $ int 2], Val $ int 2]
+                    ])
 
 main :: IO ()
 main = print test

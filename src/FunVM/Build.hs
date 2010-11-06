@@ -6,6 +6,7 @@ module FunVM.Build
   , (@@)
   , ($$)
   , int
+  , lets
   ) where
 
 import FunVM.Syntax
@@ -38,4 +39,7 @@ e1 $$ e2 = e1 `App` Val (Delay e2)
 
 int :: Integer -> Val
 int x = Lit $ Integer x int32
+
+lets :: [([Bind], Expr)] -> Expr -> Expr
+lets xs expr = foldr (uncurry Let) expr xs
 
