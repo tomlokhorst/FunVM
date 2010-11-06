@@ -1,9 +1,10 @@
 module FunVM.Build
   ( (~>)
-  , (@@)
   , params
   , int32
   , character
+  , (@@)
+  , ($$)
   , int
   ) where
 
@@ -17,9 +18,6 @@ infixr 5 ~>
 (~>) :: [Bind] -> Types -> Type
 (~>) = Fun
 
-(@@) :: Expr -> [Expr] -> Expr
-e1 @@ e2 = e1 `App` Multi e2
-
 params :: [Type] -> [Bind]
 params = map (TermPat "_")
 
@@ -31,6 +29,13 @@ character = Base Character
 
 -- Expression convenience functions
 
-int :: Integer -> Expr
-int x = Val (Lit $ Integer x int32)
+(@@) :: Expr -> [Expr] -> Expr
+e1 @@ [e2] = e1 `App` e2
+e1 @@ e2  = e1 `App` Multi e2
+
+($$) :: Expr -> Expr -> Expr
+e1 $$ e2 = e1 `App` Val (Delay e2)
+
+int :: Integer -> Val
+int x = Lit $ Integer x int32
 

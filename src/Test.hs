@@ -62,16 +62,13 @@ test =
              (Delay $ Var "const" @@ [ Val $ Lit $ Type int32
                                      , Val $ Lit $ Type character
                                      ]
-                                  @@ [Val $ Lit (Integer 3 int32)]
+                                  @@ [Val $ int 3]
                                   @@ [Val $ Lit (Char 'c')])
       , Bind (TermPat "y" (Lazy [int32]))
-             (Delay $ Var "const" @@ [ Val $ Lit $ Type int32
-                                     , Val $ Lit $ Type character
-                                     ]
-                                  @@ [Val $ Lit (Integer 3 int32)]
-                                  @@ [Val $ Lit (Char 'c')])
+             (Delay $ Val (Lam [TermPat "c" (Lazy [character])] (Var "x"))
+                        $$ Val (Lit $ Char 'd'))
       , Bind (TermPat "main" (Lazy [int32]))
-             (Delay $ Val $ Lit (Integer 42 int32))
+             (Delay $ Val $ int 42)
       ]
     ]
 
