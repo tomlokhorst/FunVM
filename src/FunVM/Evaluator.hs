@@ -39,16 +39,15 @@ eval env (Val v)            = return [val env v]
 eval env (Var x)            = maybe (throwError $ "Variable '" ++ x ++ "' not in environment.")
                                     (return . return)
                                     (lookup x env)
-eval env (App e es)         = do
-  f <- eval env e
+eval env (App e1 e2)        = do
+  f <- eval env e1
   case f of
     [ValPrim s] -> do
-      args <- eval env es
+      args <- eval env e2
       ffi s args
-    [ValFun env' ps body] -> do
-      args <- eval env es
-      let env'' = zip (map bindId ps) args `mergeEnvs` env'
-      eval env'' body
+    [ValFun env' bs body] -> do
+      env'' <- evalArgs env bs e2
+      eval (env'' `mergeEnvs` env') body
     x -> throwError $ "Can't apply to non-function `" ++ show x ++ "'."
 eval env (Let ps e1 e2)  = do
   vs <- eval env e1
@@ -63,6 +62,18 @@ eval env (Force e)          = do
   case v of
     [ValThunk env' e'] -> eval env' e'
     x -> throwError $ "Can't force non-thunk `" ++ show x ++ "'."
+
+evalArgs :: Env -> [Bind] -> Expr -> Eval Env
+evalArgs x y z = f x y [z]
+  where
+    f :: Env -> [Bind] -> [Expr] -> Eval Env
+    f _   _  []              = return []
+    f env bs (Multi es1:es2) = f env bs (es1 ++ es2)
+    f env bs (e:es) = do
+      vs <- eval env e
+      let (bs1, bs2) = splitAt (length vs) bs
+          env' = zip (map bindId bs1) vs
+      (env' ++) `fmap` f (env' ++ env) bs2 es
 
 evalValBind :: Env -> Bind -> Val -> Eval (Id, Value)
 evalValBind env b v = do
