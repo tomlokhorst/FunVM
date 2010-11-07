@@ -47,7 +47,7 @@ data Type
 
 -- | Built-in types
 data Base
-  = Int { bitSize :: Int }
+  = Int { bitSize :: !Int }
   | Float32
   | Double64
   | Character
@@ -80,10 +80,10 @@ data Expr
 
 -- | Literal integers, characters or strings
 data Literal
-  = Integer  Integer  Type
-  | Char     Char
-  | String   String
-  | Type     Type
+  = Integer  !Integer  !Type
+  | Char     !Char
+  | String   !String
+  | Type     !Type
   deriving Eq
 
 -- | Group of mutually dependent bindings
