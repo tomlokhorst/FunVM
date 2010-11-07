@@ -44,7 +44,7 @@ eval env (App e1 e2)        = do
   case f of
     [ValPrim s] -> do
       args <- eval env e2
-      ffi s args
+      prim s args
     [ValFun env' bs body] -> do
       env'' <- evalArgs env bs e2
       eval (env'' `mergeEnvs` env') body
@@ -91,14 +91,14 @@ closureEnv env e = intersectBy ((==) `on` fst) env (map (\x -> (x, undefined)) (
 mergeEnvs :: Env -> Env -> Env
 mergeEnvs env1 env2 = nubBy ((==) `on` fst) (env1 ++ env2)
 
-ffi :: String -> Values -> Eval Values
-ffi "primAddInt32" [ValBase (Integer x _), ValBase (Integer y _)] = intVal (x + y)
-ffi "primSubInt32" [ValBase (Integer x _), ValBase (Integer y _)] = intVal (x - y)
-ffi "primMulInt32" [ValBase (Integer x _), ValBase (Integer y _)] = intVal (x * y)
-ffi "primEqInt32"  [ValBase (Integer x _), ValBase (Integer y _)] = intVal (if x == y then 1 else 0)
-ffi "primOrInt32"  [ValBase (Integer x _), ValBase (Integer y _)] = intVal (if x /= 0 || y /= 0 then 1 else 0)
-ffi "primIfInt32"  [ValBase (Integer p _), _, x, y]  = return $ if p == 0 then [y] else [x]
-ffi s _  = throwError $ "Unknown Pim call `" ++ s ++ "'"
+prim :: String -> Values -> Eval Values
+prim "primAddInt32" [ValBase (Integer x _), ValBase (Integer y _)] = intVal (x + y)
+prim "primSubInt32" [ValBase (Integer x _), ValBase (Integer y _)] = intVal (x - y)
+prim "primMulInt32" [ValBase (Integer x _), ValBase (Integer y _)] = intVal (x * y)
+prim "primEqInt32"  [ValBase (Integer x _), ValBase (Integer y _)] = intVal (if x == y then 1 else 0)
+prim "primOrInt32"  [ValBase (Integer x _), ValBase (Integer y _)] = intVal (if x /= 0 || y /= 0 then 1 else 0)
+prim "primIfInt32"  [ValBase (Integer p _), _, x, y]  = return $ if p == 0 then [y] else [x]
+prim s _  = throwError $ "Unknown Prim call `" ++ s ++ "'"
 
 intVal :: Integer -> Eval Values
 intVal x = return [ValBase $ Integer x int32]
