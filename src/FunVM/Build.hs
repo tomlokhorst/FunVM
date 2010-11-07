@@ -6,8 +6,12 @@ module FunVM.Build
   , ($$)
   , int
   , lets
+  , letrec
+  , fn
   , fun
   ) where
+
+import Control.Arrow
 
 import FunVM.Syntax
 
@@ -36,12 +40,19 @@ int :: Integer -> Val
 int x = Lit $ Integer x int32
 
 lets :: [([Bind], Expr)] -> Expr -> Expr
-lets xs expr = foldr (uncurry Let) expr xs
+lets xs e = foldr (uncurry Let) e xs
 
-fun :: Id -> [Bind] -> [Type] -> Expr -> ([Bind], Expr)
-fun x bs rts e  = ([TermPat x $ map f bs `Fun` rts], Val $ Lam bs e)
+letrec :: [(Bind, Val)] -> Expr -> Expr
+letrec xs e = LetRec (map (uncurry Bind) xs) e
+
+fn :: Id -> [Bind] -> [Type] -> Expr -> ([Bind], Expr)
+fn x bs rts = first return . second Val . fun x bs rts
+
+fun :: Id -> [Bind] -> [Type] -> Expr -> (Bind, Val)
+fun x bs rts e  = (TermPat x $ map f bs `Fun` rts, Lam bs e)
   where
     f :: Bind -> Bind
     f (TermPat _ t) = TermPat "_" t
     f t             = t
+
 
