@@ -1,23 +1,18 @@
 module FunVM.Build
-  ( (~>)
-  , params
+  ( params
   , int32
   , character
   , (@@)
   , ($$)
   , int
   , lets
+  , fun
   ) where
 
 import FunVM.Syntax
 
 
 -- Type convenience functions
-
-infixr 5 ~>
-
-(~>) :: [Bind] -> Types -> Type
-(~>) = Fun
 
 params :: [Type] -> [Bind]
 params = map (TermPat "_")
@@ -42,4 +37,11 @@ int x = Lit $ Integer x int32
 
 lets :: [([Bind], Expr)] -> Expr -> Expr
 lets xs expr = foldr (uncurry Let) expr xs
+
+fun :: Id -> [Bind] -> [Type] -> Expr -> ([Bind], Expr)
+fun x bs rts e  = ([TermPat x $ map f bs `Fun` rts], Val $ Lam bs e)
+  where
+    f :: Bind -> Bind
+    f (TermPat _ t) = TermPat "_" t
+    f t             = t
 
