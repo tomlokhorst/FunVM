@@ -9,12 +9,12 @@ import FunVM.Syntax
 
 
 arith :: Type
-arith = params [int32, int32] ~> [int32]
+arith = params [int32, int32] `Fun` [int32]
 
 primIf :: Expr
 primIf = Val $ Prim "primIfInt32"
   ((params [int32] ++ [TypePat "c" Star] ++ params [Lazy [TyVar "c"], Lazy [TyVar "c"]])
-      ~> [Lazy [TyVar "c"]])
+      `Fun` [Lazy [TyVar "c"]])
 
 test :: Module
 test =
@@ -31,7 +31,7 @@ test =
     , [ Bind (TermPat "if" ((params [int32]
                                ++ [TypePat "a" Star]
                                ++ params [Lazy [TyVar "a"], Lazy [TyVar "a"]]
-                            ) ~> [int32]))
+                            ) `Fun` [int32]))
              (Lam [ TermPat "p" int32
                   , TypePat "a" Star
                   , TermPat "x" (Lazy [TyVar "a"])
@@ -41,7 +41,7 @@ test =
       ]
     , [ Bind (TermPat "const'" (([TypePat "a" Star, TypePat "b" Star]
                                     ++ params [TyVar "a", Lazy [TyVar "b"]]
-                                ) ~> [TyVar "a"]))
+                                ) `Fun` [TyVar "a"]))
              (Lam [ TypePat "a" Star
                   , TypePat "b" Star
                   , TermPat "x" (TyVar "a")
@@ -50,9 +50,9 @@ test =
                   (Var "x"))
       ]
     , [ Bind (TermPat "const" ([TypePat "a" Star, TypePat "b" Star]
-                                  ~> [params [Lazy [TyVar "a"]]
-                                        ~> [params [Lazy [TyVar "b"]]
-                                              ~> [TyVar "a"]]]))
+                                  `Fun` [params [Lazy [TyVar "a"]]
+                                          `Fun` [params [Lazy [TyVar "b"]]
+                                                  `Fun` [TyVar "a"]]]))
              (Lam [ TypePat "a" Star
                   , TypePat "b" Star
                   ]
@@ -95,6 +95,24 @@ test2 = lets [ ( [TermPat "add" arith]
                     , Var "add3" @@ [Multi [Val $ int 1, Val $ int 2], Val $ int 3]
                     , Var "add3" @@ [Var "bar" @@ [Val $ int 2], Val $ int 2]
                     ])
+
+test3 :: Expr
+test3 = lets [ fun "const" [ TypePat "a" Star
+                           , TypePat "b" Star
+                           , TermPat "x" $ Lazy [TyVar "a"]
+                           , TermPat "y" $ Lazy [TyVar "b"]
+                           ]
+                           [TyVar "a"]
+                           (Force $ Var "x")
+             , ( [TermPat "add" arith]
+               , (Val $ Prim "primAddInt32" arith)
+               )
+             ]
+             (Var "const" @@ [ Val $ Lit $ Type int32
+                             , Val $ Lit $ Type int32
+                             , Val $ Delay (Var "add" @@ [Val $ int 2, Val $ int 3])
+                             , Val $ Delay (Var "add" @@ [Val $ int 4, Val $ int 5])
+                             ])
 
 main :: IO ()
 main = print test
