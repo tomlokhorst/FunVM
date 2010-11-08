@@ -167,22 +167,21 @@ fib = lets [ ( [TermPat "sub" arith]
                   [TermPat "n" $ Lazy [int32]]
                   [int32]
                   (Var "if"
-                      @@ [ Var "or" @@ [ Var "eq" @@ [Var "n", int 0]
-                                       , Var "eq" @@ [Var "n", int 1]
+                      @@ [ Var "or" @@ [ Var "eq" @@ [Force $ Var "n", int 0]
+                                       , Var "eq" @@ [Force $ Var "n", int 1]
                                        ]
                          , ty int32
                          , delay (Force $ Var "n")
                          , delay
                              (Var "add"
-                                @@ [ Var "fibL"
-                                       @@ [delay $ Var "sub" @@ [Force $ Var "n", int 1]]
-                                   , Var "fibL"
-                                       @@ [delay $ Var "sub" @@ [Force $ Var "n", int 2]]
+                                @@ [ Var "fibL" @@ [delay $ Var "sub" @@ [Force $ Var "n", int 1]]
+                                   , Var "fibL" @@ [delay $ Var "sub" @@ [Force $ Var "n", int 2]]
                                    ]
                              )
                          ]
                   )
               ]
+             -- (Var "fib" @@ [int 20])
               (Var "fibL" @@ [delay $ int 20])
            )
 
