@@ -5,10 +5,16 @@ module FunVM.Build
   , (@@)
   , ($$)
   , int
+  , char
+  , ty
+  , lam
+  , delay
+  , prim
   , lets
   , letrec
   , fn
   , fun
+  , modul
   ) where
 
 import Control.Arrow
@@ -36,8 +42,23 @@ e1 @@ e2  = e1 `App` Multi e2
 ($$) :: Expr -> Expr -> Expr
 e1 $$ e2 = e1 `App` Val (Delay e2)
 
-int :: Integer -> Val
-int x = Lit $ Integer x int32
+int :: Integer -> Expr
+int x = Val . Lit $ Integer x int32
+
+char :: Char -> Expr
+char = Val . Lit . Char
+
+ty :: Type -> Expr
+ty = Val . Lit . Type
+
+lam :: [Bind] -> Expr -> Expr
+lam bs = Val . Lam bs
+
+delay :: Expr -> Expr
+delay = Val . Delay
+
+prim :: String -> Type -> Expr
+prim s = Val . Prim s
 
 lets :: [([Bind], Expr)] -> Expr -> Expr
 lets xs e = foldr (uncurry Let) e xs
@@ -55,4 +76,6 @@ fun x bs rts e  = (TermPat x $ map f bs `Fun` rts, Lam bs e)
     f (TermPat _ t) = TermPat "_" t
     f t             = t
 
+modul :: Id -> [Id] -> [(Bind, Val)] -> Module
+modul nm is xs = Module nm is [map (uncurry Bind) xs]
 

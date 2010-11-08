@@ -12,65 +12,75 @@ arith :: Type
 arith = params [int32, int32] `Fun` [int32]
 
 primIf :: Expr
-primIf = Val $ Prim "primIfInt32"
-  ((params [int32] ++ [TypePat "c" Star] ++ params [Lazy [TyVar "c"], Lazy [TyVar "c"]])
-      `Fun` [Lazy [TyVar "c"]])
+primIf = prim "primIfInt32"
+              ((params [int32] ++ [TypePat "c" Star] ++ params [Lazy [TyVar "c"], Lazy [TyVar "c"]])
+                  `Fun` [Lazy [TyVar "c"]])
 
 test :: Module
 test =
-  Module "Prelude" []
-    [ [ Bind (TermPat "add" arith)
-             (Prim "primAddInt32" arith)
-      ]
-    , [ Bind (TermPat "sub" arith)
-             (Prim "primSubInt32" arith)
-      ]
-    , [ Bind (TermPat "mul" arith)
-             (Prim "primMulInt32" arith)
-      ]
-    , [ Bind (TermPat "if" ((params [int32]
-                               ++ [TypePat "a" Star]
-                               ++ params [Lazy [TyVar "a"], Lazy [TyVar "a"]]
-                            ) `Fun` [int32]))
-             (Lam [ TermPat "p" int32
-                  , TypePat "a" Star
-                  , TermPat "x" (Lazy [TyVar "a"])
-                  , TermPat "y" (Lazy [TyVar "a"])
-                  ]
-                  (Force $ primIf @@ [Var "p", Var "a", Var "x", Var "y"]))
-      ]
-    , [ Bind (TermPat "const'" (([TypePat "a" Star, TypePat "b" Star]
-                                    ++ params [TyVar "a", Lazy [TyVar "b"]]
-                                ) `Fun` [TyVar "a"]))
-             (Lam [ TypePat "a" Star
-                  , TypePat "b" Star
-                  , TermPat "x" (TyVar "a")
-                  , TermPat "y" (Lazy [TyVar "b"])
-                  ]
-                  (Var "x"))
-      ]
-    , [ Bind (TermPat "const" ([TypePat "a" Star, TypePat "b" Star]
-                                  `Fun` [params [Lazy [TyVar "a"]]
-                                          `Fun` [params [Lazy [TyVar "b"]]
-                                                  `Fun` [TyVar "a"]]]))
-             (Lam [ TypePat "a" Star
-                  , TypePat "b" Star
-                  ]
-                  (Val $ Lam [TermPat "x" (Lazy [TyVar "a"])]
-                             (Val $ Lam [TermPat "y" (Lazy [TyVar "b"])]
-                                        (Force $ Var "x"))))
-      , Bind (TermPat "x" (Lazy [int32]))
-             (Delay $ Var "const" @@ [ Val $ Lit $ Type int32
-                                     , Val $ Lit $ Type character
-                                     ]
-                                  @@ [Val $ int 3]
-                                  @@ [Val $ Lit (Char 'c')])
-      , Bind (TermPat "y" (Lazy [int32]))
-             (Delay $ Val (Lam [TermPat "c" (Lazy [character])] (Var "x"))
-                        $$ Val (Lit $ Char 'd'))
-      , Bind (TermPat "main" (Lazy [int32]))
-             (Delay $ Val $ int 42)
-      ]
+  modul "Prelude" []
+    [ ( TermPat "add" arith
+      , Prim "primAddInt32" arith
+      )
+    , ( TermPat "sub" arith
+      , Prim "primSubInt32" arith
+      )
+    , ( TermPat "mul" arith
+      , Prim "primMulInt32" arith
+      )
+    , fun "if" [ TermPat "p" int32
+               , TypePat "a" Star
+               , TermPat "x" (Lazy [TyVar "a"])
+               , TermPat "y" (Lazy [TyVar "a"])
+               ]
+               [int32]
+               (Force $ primIf @@ [Var "p", Var "a", Var "x", Var "y"])
+    , ( TermPat "if" ((params [int32]
+                        ++ [TypePat "a" Star]
+                        ++ params [Lazy [TyVar "a"], Lazy [TyVar "a"]]
+                     ) `Fun` [int32])
+      , Lam [ TermPat "p" int32
+            , TypePat "a" Star
+            , TermPat "x" (Lazy [TyVar "a"])
+            , TermPat "y" (Lazy [TyVar "a"])
+            ]
+            (Force $ primIf @@ [Var "p", Var "a", Var "x", Var "y"])
+      )
+    , ( TermPat "const'" (([TypePat "a" Star, TypePat "b" Star]
+                             ++ params [TyVar "a", Lazy [TyVar "b"]]
+                         ) `Fun` [TyVar "a"])
+      , Lam [ TypePat "a" Star
+            , TypePat "b" Star
+            , TermPat "x" (TyVar "a")
+            , TermPat "y" (Lazy [TyVar "b"])
+            ]
+            (Var "x")
+      )
+    , ( TermPat "const" ([TypePat "a" Star, TypePat "b" Star]
+                              `Fun` [params [Lazy [TyVar "a"]]
+                                      `Fun` [params [Lazy [TyVar "b"]]
+                                              `Fun` [TyVar "a"]]])
+      ,  Lam [ TypePat "a" Star
+             , TypePat "b" Star
+             ]
+             (lam [TermPat "x" (Lazy [TyVar "a"])]
+                  (lam [TermPat "y" (Lazy [TyVar "b"])]
+                       (Force $ Var "x")))
+      )
+    , ( TermPat "x" (Lazy [int32])
+      , Delay $ Var "const" @@ [ ty int32
+                               , ty character
+                               ]
+                            @@ [int 3]
+                            @@ [char 'c']
+      )
+    , ( TermPat "y" (Lazy [int32])
+      , Delay $ Val (Lam [TermPat "c" (Lazy [character])] (Var "x"))
+                  $$ Val (Lit $ Char 'd')
+      )
+    , ( TermPat "main" (Lazy [int32])
+      , Delay $ int 42
+      )
     ]
 
 test2 :: Expr
@@ -86,14 +96,14 @@ test2 = lets [ ( [TermPat "add" arith]
                )
              , ( [TermPat "bar" $ params [int32] `Fun` [int32, int32]]
                , (Val $ Lam [TermPat "x" int32]
-                            (Multi [ Var "add" @@ [Var "x", Val $ int 1]
-                                   , Var "sub" @@ [Var "x", Val $ int 1]
+                            (Multi [ Var "add" @@ [Var "x", int 1]
+                                   , Var "sub" @@ [Var "x", int 1]
                                    ]))
                )
              ]
-             (Multi [ Var "add3" @@ [Val $ int 1, Val $ int 2, Val $ int 3]
-                    , Var "add3" @@ [Multi [Val $ int 1, Val $ int 2], Val $ int 3]
-                    , Var "add3" @@ [Var "bar" @@ [Val $ int 2], Val $ int 2]
+             (Multi [ Var "add3" @@ [int 1, int 2, int 3]
+                    , Var "add3" @@ [Multi [int 1, int 2], int 3]
+                    , Var "add3" @@ [Var "bar" @@ [int 2], int 2]
                     ])
 
 test3 :: Expr
@@ -108,10 +118,10 @@ test3 = lets [ fn "const" [ TypePat "a" Star
                , (Val $ Prim "primAddInt32" arith)
                )
              ]
-             (Var "const" @@ [ Val $ Lit $ Type int32
-                             , Val $ Lit $ Type int32
-                             , Val $ Delay (Var "add" @@ [Val $ int 2, Val $ int 3])
-                             , Val $ Delay (Var "add" @@ [Val $ int 4, Val $ int 5])
+             (Var "const" @@ [ ty int32
+                             , ty int32
+                             , delay (Var "add" @@ [int 2, int 3])
+                             , delay (Var "add" @@ [int 4, int 5])
                              ])
 
 fib :: Expr
@@ -140,21 +150,40 @@ fib = lets [ ( [TermPat "sub" arith]
                   [ TermPat "n" $ int32]
                   [int32]
                   (Var "if"
-                      @@ [ Var "or" @@ [ Var "eq" @@ [Var "n", Val $ int 0]
-                                       , Var "eq" @@ [Var "n", Val $ int 1]
+                      @@ [ Var "or" @@ [ Var "eq" @@ [Var "n", int 0]
+                                       , Var "eq" @@ [Var "n", int 1]
                                        ]
-                         , Val $ Lit $ Type int32
-                         , Val $ Delay (Var "n")
-                         , Val $ Delay
+                         , ty int32
+                         , delay (Var "n")
+                         , delay
                              (Var "add"
-                                @@ [ Var "fib" @@ [Var "sub" @@ [Var "n", Val $ int 1]]
-                                   , Var "fib" @@ [Var "sub" @@ [Var "n", Val $ int 2]]
+                                @@ [ Var "fib" @@ [Var "sub" @@ [Var "n", int 1]]
+                                   , Var "fib" @@ [Var "sub" @@ [Var "n", int 2]]
+                                   ]
+                             )
+                         ]
+                  )
+              , fun "fibL"
+                  [TermPat "n" $ Lazy [int32]]
+                  [int32]
+                  (Var "if"
+                      @@ [ Var "or" @@ [ Var "eq" @@ [Var "n", int 0]
+                                       , Var "eq" @@ [Var "n", int 1]
+                                       ]
+                         , ty int32
+                         , delay (Force $ Var "n")
+                         , delay
+                             (Var "add"
+                                @@ [ Var "fibL"
+                                       @@ [delay $ Var "sub" @@ [Force $ Var "n", int 1]]
+                                   , Var "fibL"
+                                       @@ [delay $ Var "sub" @@ [Force $ Var "n", int 2]]
                                    ]
                              )
                          ]
                   )
               ]
-              (Var "fib" @@ [Val $ int 25])
+              (Var "fibL" @@ [delay $ int 20])
            )
 
 main :: IO ()
