@@ -2,6 +2,7 @@ module Main where
 
 import FunVM.Build
 import FunVM.Evaluator
+import FunVM.JsCompiler
 import FunVM.Pretty ()
 import FunVM.Syntax
 
@@ -27,54 +28,39 @@ test = modul "Prelude" []
   , ( TermPat "mul" arith
     , Prim "primMulInt32" arith
     )
-  , fun "if" [ TermPat "p" int32
-             , TypePat "a" Star
-             , TermPat "x" (Lazy [TyVar "a"])
-             , TermPat "y" (Lazy [TyVar "a"])
-             ]
-             [int32]
-             (Force $ primIf @@ [Var "p", Var "a", Var "x", Var "y"])
-  , ( TermPat "if" ((params [int32]
-                      ++ [TypePat "a" Star]
-                      ++ params [Lazy [TyVar "a"], Lazy [TyVar "a"]]
-                   ) `Fun` [int32])
-    , Lam [ TermPat "p" int32
-          , TypePat "a" Star
-          , TermPat "x" (Lazy [TyVar "a"])
-          , TermPat "y" (Lazy [TyVar "a"])
-          ]
-          (Force $ primIf @@ [Var "p", Var "a", Var "x", Var "y"])
-    )
-  , ( TermPat "const'" (([TypePat "a" Star, TypePat "b" Star]
-                           ++ params [TyVar "a", Lazy [TyVar "b"]]
-                       ) `Fun` [TyVar "a"])
-    , Lam [ TypePat "a" Star
-          , TypePat "b" Star
-          , TermPat "x" (TyVar "a")
-          , TermPat "y" (Lazy [TyVar "b"])
-          ]
-          (Var "x")
-    )
-  , ( TermPat "const" ([TypePat "a" Star, TypePat "b" Star]
-                            `Fun` [params [Lazy [TyVar "a"]]
-                                    `Fun` [params [Lazy [TyVar "b"]]
-                                            `Fun` [TyVar "a"]]])
-    ,  Lam [ TypePat "a" Star
-           , TypePat "b" Star
-           ]
-           (lam [TermPat "x" (Lazy [TyVar "a"])]
-                (lam [TermPat "y" (Lazy [TyVar "b"])]
-                     (Force $ Var "x")))
-    )
+  , fun "if"
+        [ TermPat "p" int32
+        , TypePat "a" Star
+        , TermPat "x" (Lazy [TyVar "a"])
+        , TermPat "y" (Lazy [TyVar "a"])
+        ]
+        [int32]
+        (Force $ primIf @@ [Var "p", Var "a", Var "x", Var "y"])
+  , fun "const2"
+        [ TypePat "a" Star
+        , TypePat "b" Star
+        , TermPat "x" (TyVar "a")
+        , TermPat "y" (Lazy [TyVar "b"])
+        ]
+        [TyVar "a"]
+        (Var "x")
+  , fun "const"
+        [ TypePat "a" Star
+        , TypePat "b" Star
+        ]
+        [params [Lazy [TyVar "a"]] `Fun` [params [Lazy [TyVar "b"]] `Fun` [TyVar "a"]]]
+        (lam [TermPat "x" (Lazy [TyVar "a"])]
+             (lam [TermPat "y" (Lazy [TyVar "b"])]
+                  (Force $ Var "x")))
   , ( TermPat "x" (Lazy [int32])
     , Delay $ Var "const" @@ [ ty int32
                              , ty character
                              ]
-                          @@ [int 3]
-                          @@ [char 'c']
+                          @@ [delay $ int 3]
+                          @@ [delay $ char 'c']
     )
   , ( TermPat "y" (Lazy [int32])
-    , Delay $ Val (Lam [TermPat "c" (Lazy [character])] (Var "x"))
+    , Delay $ Val (Lam [TermPat "c" (Lazy [character])] (Force $ Var "x"))
                 $$ Val (Lit $ Char 'd')
     )
   , ( TermPat "main" (Lazy [int32])
@@ -183,7 +169,7 @@ fib = lets
                 ]
          )
      ]
-    -- (Var "fib" @@ [int 20])
+     --(Var "fib" @@ [int 20])
      (Var "fibL" @@ [delay $ int 20])
   )
 
