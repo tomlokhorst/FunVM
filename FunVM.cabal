@@ -22,6 +22,7 @@ library
   hs-source-dirs:      src
   exposed-modules:     FunVM.Build,
                        FunVM.Evaluator,
+                       FunVM.JsCompiler,
                        FunVM.Pretty,
                        FunVM.Syntax
 
