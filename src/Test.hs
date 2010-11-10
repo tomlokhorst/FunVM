@@ -1,10 +1,11 @@
 module Main where
 
-import FunVM.Build
-import FunVM.Evaluator
+import FunVM.Core.Build
+import FunVM.Core.Evaluator
+import FunVM.Core.Pretty ()
+import FunVM.Core.Syntax
 import FunVM.JsCompiler
-import FunVM.Pretty ()
-import FunVM.Syntax
+import FunVM.Transformations.DefinitionSiteArityRaising
 
 -- Test module
 

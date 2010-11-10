@@ -1,11 +1,11 @@
-module FunVM.Destructors
+module FunVM.Core.Destructors
   ( modul'
   , valBind
   , bind
   , literal
   ) where
 
-import FunVM.Syntax
+import FunVM.Core.Syntax
 
 -- | Should be named `module', but that's not allowed
 modul' :: (Id -> [Id] -> [Group] -> a) -> Module -> a

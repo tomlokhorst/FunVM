@@ -3,10 +3,10 @@
 
 -- This module should be rewritten to use PP combinators!
 
-module FunVM.Pretty
+module FunVM.Core.Pretty
   (pretty) where
 
-import FunVM.Syntax
+import FunVM.Core.Syntax
 
 import Data.List
 

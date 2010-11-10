@@ -1,4 +1,4 @@
-module FunVM.Syntax
+module FunVM.Core.Syntax
   ( Id
   , TyVar
   , Types

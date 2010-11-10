@@ -1,5 +1,5 @@
 {-# LANGUAGE DoRec #-}
-module FunVM.Evaluator
+module FunVM.Core.Evaluator
   ( Values
   , Value (..)
   , Env
@@ -10,10 +10,10 @@ import Control.Monad.Error
 import Data.Function
 import Data.List
 
-import FunVM.Build
-import FunVM.Destructors
-import FunVM.Pretty ()
-import FunVM.Syntax
+import FunVM.Core.Build
+import FunVM.Core.Destructors
+import FunVM.Core.Pretty ()
+import FunVM.Core.Syntax
 
 -- | A value is multiple Vals
 type Values = [Value]

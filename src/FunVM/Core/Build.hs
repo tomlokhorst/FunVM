@@ -1,4 +1,4 @@
-module FunVM.Build
+module FunVM.Core.Build
   ( params
   , int32
   , character
@@ -19,7 +19,7 @@ module FunVM.Build
 
 import Control.Arrow
 
-import FunVM.Syntax
+import FunVM.Core.Syntax
 
 
 -- Type convenience functions

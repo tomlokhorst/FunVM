@@ -4,8 +4,8 @@ module FunVM.JsCompiler
 
 import Data.List
 
-import FunVM.Destructors
-import FunVM.Syntax
+import FunVM.Core.Destructors
+import FunVM.Core.Syntax
 
 data Js = Js { unJs :: String }
 
