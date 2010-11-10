@@ -1,4 +1,5 @@
 {-# OPTIONS_GHC -fno-warn-orphans #-} 
+{-# LANGUAGE StandaloneDeriving #-}
 
 -- This module should be rewritten to use PP combinators!
 
@@ -15,12 +16,28 @@ class Pretty a where
 pretty :: (Pretty a) => a -> String
 pretty x = pr id x ""
 
-instance Pretty Module where
-  pr pre (Module x is bss) =
-      s "module " . s x . nl
-    . inter nl (map (\i -> s "import " . s i) is)
-    . nl
-    . inter (nl . nl) (map (pr pre) (concat bss))
+instance Pretty Kind where
+  pr _ Star = s "*"
+
+instance Pretty Bind where
+  pr pre (TermPat "_" t) = pr pre t
+  pr pre (TermPat x   t) = s x . s " : " . pr pre t
+  pr pre (TypePat x   t) = s x . s " :: " . pr pre t
+
+instance Pretty Type where
+  pr pre (Base b)    = pr pre b
+  pr pre (Fun ps rs) = tuple (map (pr pre) ps)
+                        . s " -> " . tuple (map (pr pre) rs)
+  pr pre (Lazy [t])  = s "{" . pr pre t . s "}"
+  pr pre (Lazy ts)   = s "{" . inter (s ", ") (map (pr pre) ts) . s "}"
+  pr _   (TyVar x)   = s x
+
+instance Pretty Base where
+  pr _ (Int x)     = s ("int" ++ show x)
+  pr _ Float32     = s "float32"
+  pr _ Double64    = s "double64"
+  pr _ Character   = s "char"
+  pr _ Utf16String = s "string"
 
 instance Pretty ValBind where
   pr pre (Bind (TermPat x (Fun _ rts)) (Lam ps e)) =
@@ -29,11 +46,6 @@ instance Pretty ValBind where
   pr pre (Bind p e) =
       pre . pr pre p . nl
     . pre . s "  = " . pr ((indent 1 pre) . s "   ") e
-
-instance Pretty Bind where
-  pr pre (TermPat "_" t) = pr pre t
-  pr pre (TermPat x   t) = s x . s " : " . pr pre t
-  pr pre (TypePat x   t) = s x . s " :: " . pr pre t
 
 instance Pretty Val where
   pr pre (Lit l)                = pr pre l
@@ -71,23 +83,12 @@ instance Pretty Literal where
   pr _   (String x)     = shows x
   pr pre (Type t)       = pr pre t
 
-instance Pretty Type where
-  pr pre (Base b)    = pr pre b
-  pr pre (Fun ps rs) = tuple (map (pr pre) ps)
-                        . s " -> " . tuple (map (pr pre) rs)
-  pr pre (Lazy [t])  = s "{" . pr pre t . s "}"
-  pr pre (Lazy ts)   = s "{" . inter (s ", ") (map (pr pre) ts) . s "}"
-  pr _   (TyVar x)   = s x
-
-instance Pretty Base where
-  pr _ (Int x)     = s ("int" ++ show x)
-  pr _ Float32     = s "float32"
-  pr _ Double64    = s "double64"
-  pr _ Character   = s "char"
-  pr _ Utf16String = s "string"
-
-instance Pretty Kind where
-  pr _ Star = s "*"
+instance Pretty Module where
+  pr pre (Module x is bss) =
+      s "module " . s x . nl
+    . inter nl (map (\i -> s "import " . s i) is)
+    . nl
+    . inter (nl . nl) (map (pr pre) (concat bss))
 
 -- Helper functions, to pretty print
 sp, nl :: ShowS
@@ -115,19 +116,10 @@ s = showString
 
 
 -- Show instances for all data type
-instance Show Module where
-  show = pretty
-
-instance Show ValBind where
+instance Show Kind where
   show = pretty
 
 instance Show Bind where
-  show = pretty
-
-instance Show Expr where
-  show = pretty
-
-instance Show Literal where
   show = pretty
 
 instance Show Type where
@@ -136,6 +128,25 @@ instance Show Type where
 instance Show Base where
   show = pretty
 
-instance Show Kind where
+instance Show Literal where
   show = pretty
+
+instance Show ValBind where
+  show = pretty
+
+instance Show Expr where
+  show = pretty
+
+instance Show Module where
+  show = pretty
+
+-- deriving instance Show Kind
+-- deriving instance Show Bind
+-- deriving instance Show Type
+-- deriving instance Show Base
+-- deriving instance Show ValBind
+-- deriving instance Show Val
+-- deriving instance Show Expr
+-- deriving instance Show Literal
+-- deriving instance Show Module
 
