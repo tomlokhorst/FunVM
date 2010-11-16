@@ -43,6 +43,7 @@ data Type
   | TyVar   TyVar
   | Fun     [Bind]  Types
   | Lazy    Types
+  | Any
   deriving Eq
 
 -- | Built-in types

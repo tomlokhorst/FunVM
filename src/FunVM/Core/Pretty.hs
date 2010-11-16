@@ -31,6 +31,7 @@ instance Pretty Type where
   pr pre (Lazy [t])  = s "{" . pr pre t . s "}"
   pr pre (Lazy ts)   = s "{" . inter (s ", ") (map (pr pre) ts) . s "}"
   pr _   (TyVar x)   = s x
+  pr _   (Any)       = s "_"
 
 instance Pretty Base where
   pr _ (Int x)     = s ("int" ++ show x)
