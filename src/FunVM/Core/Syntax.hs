@@ -121,7 +121,7 @@ bindId (TermPat x _) = x
 bindId (TypePat x _) = x
 
 valBindBind :: ValBind -> Bind
-valBindBind (Bind p _) = p
+valBindBind (Bind b _) = b
 
 valBindVal :: ValBind -> Val
 valBindVal (Bind _ v) = v
