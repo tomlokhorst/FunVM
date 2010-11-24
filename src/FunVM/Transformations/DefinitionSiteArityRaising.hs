@@ -62,6 +62,11 @@ updateWrapper (Bind (TermPat _ t) _) (Bind p@(TermPat x _) (Lam ps' body)) = Bin
     appVar (LetRec _ e)     = appVar e
     appVar _ = Nothing
 
+    shape :: Type -> [Int]
+    shape (Fun bs [t']) = length bs : shape t'
+    shape (Fun bs ts)   = [length bs, length ts]
+    shape _             = []
+
     args :: Expr -> [Expr]
     args (App e1@App{} e2) = args e1 ++ args e2
     args (App _        e2) = args e2
@@ -71,12 +76,5 @@ updateWrapper (Bind (TermPat _ t) _) (Bind p@(TermPat x _) (Lam ps' body)) = Bin
     jn []     _  = []
     jn (n:ns) xs = let (ys, zs) = splitAt n xs
                    in ys : jn ns zs
-
 updateWrapper _ vb = vb
-
-shape :: Type -> [Int]
-shape (Fun bs [t]) = length bs : shape t
-shape (Fun bs ts)  = [length bs, length ts]
-shape _            = []
-
 
