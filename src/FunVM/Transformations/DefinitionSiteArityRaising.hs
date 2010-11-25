@@ -40,9 +40,14 @@ updateWrapper (Bind (TermPat _ t) _) (Bind p@(TermPat x _) (Lam ps' body)) = Bin
     wNm  = x ++ "_worker"
     mwNm = Just $ wNm
 
+    fval :: Val -> Val
+    fval (Lam bs e) = Lam bs (f e)
+    fval (Delay e)  = Delay (f e)
+    fval v          = v
+
     f :: Expr -> Expr
-    f (Val (Lam ps b))    = Val (Lam ps (f b))
-    f (Val (Delay e))     = Val (Delay (f e))
+    f (Val v)             = Val (fval v)
+    f (Var nm)            = Var nm
     f e@(App e1 _)
       | appVar e1 == mwNm = foldl (@@) (Var wNm) (jn (shape t) (args e))
                             
@@ -51,7 +56,6 @@ updateWrapper (Bind (TermPat _ t) _) (Bind p@(TermPat x _) (Lam ps' body)) = Bin
     f (Force e)           = Force (f e)
     f (Let bs e1 e2)      = Let bs e1 (f e2)
     f (LetRec vbs e)      = LetRec vbs (f e)
-    f e                   = e
 
     appVar :: Expr -> Maybe Id
     appVar (Val (Delay e))  = appVar e

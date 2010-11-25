@@ -81,10 +81,6 @@ evalValBind env b v = do
   let v'= val env v
   return $ (x, v')
 
-bindId :: Bind -> Id
-bindId (TermPat x _) = x
-bindId (TypePat x _) = x
-
 closureEnv :: Env -> Expr -> Env
 closureEnv env e = intersectBy ((==) `on` fst) env (map (\x -> (x, undefined)) (fv e))
 

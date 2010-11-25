@@ -50,13 +50,3 @@ args (Val (Lam ps b)) = let (bds, ids) = args b
 args (Let _ _ e)      = args e
 args _                = ([], [])
 
-bindId :: Bind -> Id
-bindId (TermPat x _) = x
-bindId (TypePat x _) = x
-
-valBindBind :: ValBind -> Bind
-valBindBind (Bind b _) = b
-
-valBindId :: ValBind -> Id
-valBindId = bindId . valBindBind
-

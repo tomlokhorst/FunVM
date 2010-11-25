@@ -1,7 +1,11 @@
 module FunVM.Core.Destructors
   ( modul'
   , valBind
+  , valBindBind
+  , valBindVal
+  , valBindId
   , bind
+  , bindId
   , literal
   ) where
 
@@ -14,9 +18,21 @@ modul' f (Module x is bss) = f x is bss
 valBind :: (Bind -> Val -> a) -> ValBind -> a
 valBind f (Bind p v) = f p v
 
+valBindBind :: ValBind -> Bind
+valBindBind = valBind (curry fst)
+
+valBindVal :: ValBind -> Val
+valBindVal = valBind (curry snd)
+
+valBindId :: ValBind -> Id
+valBindId = bindId . valBindBind
+
 bind :: (Id -> Type -> a) -> (Id -> Kind -> a) -> Bind -> a
 bind f _ (TermPat x t)  = f x t
 bind _ g (TypePat x k) = g x k
+
+bindId :: Bind -> Id
+bindId = bind const const
 
 literal :: (Integer -> Type -> a)
              -> (Char -> a)
