@@ -57,10 +57,6 @@ compile (Module _ _ bgs) = map cvalbind $ concat bgs
 
 -- Small helper functions
 
-bindId :: Bind -> Id
-bindId (TermPat x _) = x
-bindId (TypePat x _) = x
-
 typeErasure :: Js
 typeErasure = error "Type Erasure hasn't taken place."
 

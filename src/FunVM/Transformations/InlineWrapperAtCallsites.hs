@@ -2,7 +2,6 @@ module FunVM.Transformations.InlineWrapperAtCallsites
   ( transform
   ) where
 
-import Data.List
 import Data.Maybe
 
 import FunVM.Core
@@ -50,25 +49,4 @@ transform (Module x is bgs) =
     argss (App _        e2) = argss e2
     argss (Multi es)        = [es]
     argss e                 = [[e]]
-
-test :: Module
-test = modul "test" []
-  [ fun "const"
-        [ TypePat "a" Star
-        , TypePat "b" Star
-        ]
-        [params [Lazy [TyVar "a"]] `Fun` [params [Lazy [TyVar "b"]] `Fun` [TyVar "a"]]]
-        (lets [fn "id" [TermPat "x" int32] [int32] (Var "x")]
-              (lam [TermPat "x" (Lazy [TyVar "a"])]
-                   (lam [TermPat "y" (Lazy [TyVar "b"])]
-                        (Force $ Var "x"))))
-  , fun "id"
-        [ TypePat "a" Star ]
-        [params [TyVar "a"] `Fun` [TyVar "a"]]
-        (lam [TermPat "x" (TyVar "a")] (Var "x"))
-  , ( TermPat "main" (Lazy [int32])
-    , Delay $ Var "const" @@ [ty int32, ty character] @@ [int 3] @@ [char 'c']
-    )
-  ]
-
 

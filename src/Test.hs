@@ -5,7 +5,8 @@ import FunVM.Core.Evaluator
 import FunVM.Core.Pretty ()
 import FunVM.Core.Syntax
 import FunVM.JsCompiler
-import FunVM.Transformations.DefinitionSiteArityRaising
+import qualified FunVM.Transformations.DefinitionSiteArityRaising as AR
+import qualified FunVM.Transformations.InlineWrapperAtCallsites as IW
 
 -- Test module
 
