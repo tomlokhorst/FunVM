@@ -22,7 +22,7 @@ transform applicable updateWorker updateWrapper (Module x is bgs) =
 
     -- Note: the ordering of workers and wrappers is important.
     -- Since this is a fold-left, workers must always apear before wrappers.
-    -- This way the worker can be found when calling the updateWrapper function
+    -- This way, the worker can be found when calling the updateWrapper function
     f :: [(Id, ValBind)] -> ValBind -> [(Id, ValBind)]
     f env vb
       | applicable' && isWorker  = (nm, updateWorker vb) : env

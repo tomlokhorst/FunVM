@@ -9,17 +9,16 @@ transform :: Module -> Module
 transform = GT.transform applicable updateWorker updateWrapper
 
 applicable :: ValBind -> Bool
-applicable (Bind _ v) = any (moreThan 1) (f (Val v))
+applicable (Bind _ v) = moreThanOne (nrArgs (Val v))
   where
-    f :: Expr -> [[()]]
-    f (Val (Lam _ e)) = let (bds:bdss) = f e
-                        in (() : bds):bdss
-    f (Let _ _ e)     = [] : f e
-    f _               = [[]]
-    moreThan :: Int -> [a] -> Bool
-    moreThan _ []     = False
-    moreThan 0 (_:_)  = True
-    moreThan x (_:ys) = moreThan (x - 1) ys
+    moreThanOne []  = False
+    moreThanOne [_] = False
+    moreThanOne _   = True
+
+nrArgs :: Expr -> [Int]
+nrArgs (Val (Lam bs e)) = length bs : nrArgs e
+nrArgs (Let _ _ e)      = nrArgs e
+nrArgs _                = []
 
 updateWorker :: ValBind -> ValBind
 updateWorker (Bind (TermPat x t@Fun{}) l@Lam{}) =
