@@ -5,7 +5,7 @@ import FunVM.Core.Evaluator
 import FunVM.Core.Pretty ()
 import FunVM.Core.Syntax
 import FunVM.JsCompiler
-import qualified FunVM.Transformations.DefinitionSiteArityRaising as AR
+import qualified FunVM.Transformations.DefinitionSiteArityRaising as DAR
 import qualified FunVM.Transformations.InlineWrapperAtCallsites as IW
 
 -- Test module
@@ -112,6 +112,22 @@ test3 = lets
                   , delay (Var "add" @@ [int 2, int 3])
                   , delay (Var "add" @@ [int 4, int 5])
                   ])
+
+test4 :: Module
+test4 = modul "Prelude" []
+  [ fun "const"
+        [TermPat "x" $ Lazy [int32]]
+        [params [Lazy [character]] `Fun` [int32]]
+        (lam [TermPat "y" (Lazy [int32])]
+             (Force $ Var "x"))
+  , ( TermPat "x" (Lazy [int32])
+    , Delay $ Var "const" @@ [delay $ int 3]
+                          @@ [delay $ char 'c']
+    )
+  , ( TermPat "y" (Lazy [params [Lazy [character]] `Fun` [int32]])
+    , Delay $ Var "const" @@ [delay $ int 3]
+    )
+  ]
 
 fib :: Expr
 fib = lets
