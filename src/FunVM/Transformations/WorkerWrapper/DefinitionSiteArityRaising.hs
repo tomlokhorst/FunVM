@@ -1,9 +1,9 @@
-module FunVM.WorkerWrapperTransformations.DefinitionSiteArityRaising
+module FunVM.Transformations.WorkerWrapper.DefinitionSiteArityRaising
   ( transform
   ) where
 
 import FunVM.Core
-import qualified FunVM.WorkerWrapperTransformations.GenericTransform as GT
+import qualified FunVM.Transformations.WorkerWrapper.GenericTransform as GT
 
 transform :: Module -> Module
 transform = GT.transform applicable updateWorker updateWrapper

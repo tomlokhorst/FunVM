@@ -5,8 +5,9 @@ import FunVM.Core.Pretty ()
 import FunVM.Core.Syntax
 import FunVM.Evaluator
 import FunVM.JsCompiler
-import qualified FunVM.Transformations.DefinitionSiteArityRaising as DAR
+import qualified FunVM.Transformations.SimplePartialEvaluator as PE
 import qualified FunVM.Transformations.InlineWrapperAtCallsites as IW
+import qualified FunVM.Transformations.WorkerWrapper.DefinitionSiteArityRaising as DAR
 
 -- Test module
 

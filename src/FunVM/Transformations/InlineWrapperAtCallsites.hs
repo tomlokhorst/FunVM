@@ -1,4 +1,4 @@
-module FunVM.WorkerWrapperTransformations.InlineWrapperAtCallsites
+module FunVM.Transformations.InlineWrapperAtCallsites
   ( transform
   ) where
 
@@ -6,8 +6,7 @@ import Data.Maybe
 import Data.Monoid hiding (Any)
 
 import FunVM.Core
-import FunVM.Transformations.SimplePartialEvaluator
-import qualified FunVM.WorkerWrapperTransformations.DefinitionSiteArityRaising as DAR
+import qualified FunVM.Transformations.SimplePartialEvaluator as PE
 
 transform :: Module -> Module
 transform (Module x is bgs) =
@@ -33,7 +32,7 @@ transform (Module x is bgs) =
     f e@(App _ _) | appVar e `elem` map Just wrappers
                      = let nm   = fromJust $ appVar e
                            wrkr = fromJust $ lookup nm env
-                       in inline mempty (Val wrkr) (argss e) --Var (">> " ++ show (argss e) ++ " <<")
+                       in inline mempty (Val wrkr) (argss e)
     f (App e1 e2)    = App (f e1) (f e2)
     f (Multi es)     = Multi (map f es)
     f (Force e)      = Force (f e)
@@ -56,7 +55,12 @@ transform (Module x is bgs) =
     argss e                 = [[e]]
 
 inline :: Env -> Expr -> [[Expr]] -> Expr
-inline env e          []    = exprEval env e
+inline env e          []    = PE.exprEval env e
 inline env (Val (Lam bs e)) (args:argss) = inline (mkEnv bs args `mappend` env) e argss
 inline _   e          _     = e
+ 
+type Env = [(Id, Expr)]
+
+mkEnv :: [Bind] -> [Expr] -> Env
+mkEnv bs es = zip (map bindId bs) es
 

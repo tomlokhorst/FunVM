@@ -27,10 +27,10 @@ library
                       FunVM.Core.Syntax,
                       FunVM.Evaluator,
                       FunVM.JsCompiler,
+                      FunVM.Transformations.InlineWrapperAtCallsites,
                       FunVM.Transformations.SimplePartialEvaluator,
-                      FunVM.WorkerWrapperTransformations.DefinitionSiteArityRaising
-                      FunVM.WorkerWrapperTransformations.GenericTransform
-                      FunVM.WorkerWrapperTransformations.InlineWrapperAtCallsites
+                      FunVM.Transformations.WorkerWrapper.DefinitionSiteArityRaising
+                      FunVM.Transformations.WorkerWrapper.GenericTransform
 
 executable funi
   build-depends:      base >= 4 && < 5
