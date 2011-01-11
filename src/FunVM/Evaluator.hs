@@ -1,5 +1,5 @@
 {-# LANGUAGE DoRec #-}
-module FunVM.Core.Evaluator
+module FunVM.Evaluator
   ( Values
   , Value (..)
   , Env

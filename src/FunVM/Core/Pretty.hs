@@ -61,14 +61,15 @@ instance Pretty Val where
   pr pre (Prim x t)             = s "primitive " . s x . s " : " . pr pre t
 
 instance Pretty Expr where
-  pr pre (Val v)             = pr pre v
-  pr _   (Var x)             = s x
-  pr pre (App f@(App {}) a)  = pr pre f . sp . pr pre a
-  pr pre (App f@(Var {}) a)  = pr pre f . sp . pr pre a
-  pr pre (App f a)           = paren (pr pre f) . nl . pre . sp . sp . pr (indent 2 pre) a
-  pr pre (Multi es)          = tuple (map (pr pre) es)
-  pr pre (Force e)           = s "|" . pr (indent 1 pre) e . s "|"
-  pr pre l@(Let{})           = s "let " . nl . f l
+  pr pre (Val v)                = pr pre v
+  pr _   (Var x)                = s x
+  -- pr pre (App f@Var{} x@App{})  = pr pre f . sp . s "(" . pr pre x . s ")"
+  pr pre (App f@App{} a)        = pr pre f . sp . pr pre a
+  pr pre (App f@Var{} a)        = pr pre f . sp . pr pre a
+  pr pre (App f a)              = paren (pr pre f) . nl . pre . sp . sp . pr (indent 2 pre) a
+  pr pre (Multi es)             = tuple (map (pr pre) es)
+  pr pre (Force e)              = s "|" . pr (indent 1 pre) e . s "|"
+  pr pre l@Let{}                = s "let " . nl . f l
     where
       f (Let ps e1 e2) = indent 2 pre . tuple (map (pr $ indent 2 pre) ps) . nl
                            . pre . s "    = " . pr (indent 7 pre) e1 . nl

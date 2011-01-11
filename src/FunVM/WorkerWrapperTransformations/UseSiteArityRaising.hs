@@ -1,4 +1,4 @@
-module FunVM.Transformations.DefinitionSiteArityRaising
+module FunVM.Transformations.UseSiteArityRaising
   ( transform
   ) where
 

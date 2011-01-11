@@ -1,9 +1,9 @@
 module Main where
 
 import FunVM.Core.Build
-import FunVM.Core.Evaluator
 import FunVM.Core.Pretty ()
 import FunVM.Core.Syntax
+import FunVM.Evaluator
 import FunVM.JsCompiler
 import qualified FunVM.Transformations.DefinitionSiteArityRaising as DAR
 import qualified FunVM.Transformations.InlineWrapperAtCallsites as IW
@@ -118,7 +118,7 @@ test4 = modul "Prelude" []
   [ fun "const"
         [TermPat "x" $ Lazy [int32]]
         [params [Lazy [character]] `Fun` [int32]]
-        (lam [TermPat "y" (Lazy [int32])]
+        (lam [TermPat "y" (Lazy [character])]
              (Force $ Var "x"))
   , ( TermPat "x" (Lazy [int32])
     , Delay $ Var "const" @@ [delay $ int 3]

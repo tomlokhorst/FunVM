@@ -40,7 +40,7 @@ character = Base Character
 (@@) :: Expr -> [Expr] -> Expr
 e1 @@ []   = e1
 e1 @@ [e2] = e1 `App` e2
-e1 @@ e2   = e1 `App` Multi e2
+e1 @@ es   = e1 `App` Multi es
 
 ($$) :: Expr -> Expr -> Expr
 e1 $$ e2 = e1 `App` Val (Delay e2)

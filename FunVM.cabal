@@ -1,5 +1,5 @@
 name:                FunVM
-version:             0.2.3
+version:             0.2.4
 synopsis:            A Functional Intermediate Language
 description:         Better than sliced bread!
 license:             BSD3
@@ -15,21 +15,25 @@ build-type:          Simple
 cabal-version:       >= 1.6
 
 library
-  build-depends:       base >= 4 && < 5,
-                       bool-extras >= 0.3.0 && < 0.4,
-                       monads-fd >= 0.1.0.0 && < 0.2,
-                       transformers >= 0.2.0.0 && < 0.3
-  hs-source-dirs:      src
-  exposed-modules:     FunVM.Core,
-                       FunVM.Core.Build,
-                       FunVM.Core.Destructors,
-                       FunVM.Core.Evaluator,
-                       FunVM.Core.Pretty,
-                       FunVM.Core.Syntax,
-                       FunVM.JsCompiler
+  build-depends:      base >= 4 && < 5,
+                      bool-extras >= 0.3.0 && < 0.4,
+                      monads-fd >= 0.1.0.0 && < 0.2,
+                      transformers >= 0.2.0.0 && < 0.3
+  hs-source-dirs:     src
+  exposed-modules:    FunVM.Core,
+                      FunVM.Core.Build,
+                      FunVM.Core.Destructors,
+                      FunVM.Core.Pretty,
+                      FunVM.Core.Syntax,
+                      FunVM.Evaluator,
+                      FunVM.JsCompiler,
+                      FunVM.Transformations.SimplePartialEvaluator,
+                      FunVM.WorkerWrapperTransformations.DefinitionSiteArityRaising
+                      FunVM.WorkerWrapperTransformations.GenericTransform
+                      FunVM.WorkerWrapperTransformations.InlineWrapperAtCallsites
 
 executable funi
-  build-depends:       base >= 4 && < 5
-  main-is:             Funi.hs
-  hs-source-dirs:      src
+  build-depends:      base >= 4 && < 5
+  main-is:            Funi.hs
+  hs-source-dirs:     src
 

@@ -1,4 +1,4 @@
-module FunVM.Transformations.GenericTransform
+module FunVM.WorkerWrapperTransformations.GenericTransform
   ( transform
   ) where
 
