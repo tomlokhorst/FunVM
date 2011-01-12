@@ -10,10 +10,7 @@ import Control.Monad.Error
 import Data.Function
 import Data.List
 
-import FunVM.Core.Build
-import FunVM.Core.Destructors
-import FunVM.Core.Pretty ()
-import FunVM.Core.Syntax
+import FunVM.Core
 
 -- | A value is multiple Vals
 type Values = [Value]
@@ -97,5 +94,5 @@ primFun "primIfInt32"  [ValBase (Integer p _), _, x, y]  = return $ if p == 0 th
 primFun s _  = throwError $ "Unknown Prim call `" ++ s ++ "'"
 
 intVal :: Integer -> Eval Values
-intVal x = return [ValBase $ Integer x int32]
+intVal x = return [ValBase $ Integer x 32]
 

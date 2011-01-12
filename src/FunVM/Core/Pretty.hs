@@ -80,7 +80,7 @@ instance Pretty Expr where
                                 . pre . s "in " . pr (indent 3 pre) e
 
 instance Pretty Literal where
-  pr pre (Integer x t)  = s "(" . shows x . s " : " . pr pre t . s ")"
+  pr pre (Integer x bs) = s "(" . shows x . s " : " . pr pre (Base (Int bs)) . s ")"
   pr _   (Char c)       = shows c
   pr _   (String x)     = shows x
   pr pre (Type t)       = pr pre t

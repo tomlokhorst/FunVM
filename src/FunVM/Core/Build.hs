@@ -46,7 +46,7 @@ e1 @@ es   = e1 `App` Multi es
 e1 $$ e2 = e1 `App` Val (Delay e2)
 
 int :: Integer -> Expr
-int x = Val . Lit $ Integer x int32
+int x = Val . Lit $ Integer x 32
 
 char :: Char -> Expr
 char = Val . Lit . Char

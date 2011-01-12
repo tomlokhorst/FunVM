@@ -29,19 +29,19 @@ valBindId = bindId . valBindBind
 
 bind :: (Id -> Type -> a) -> (Id -> Kind -> a) -> Bind -> a
 bind f _ (TermPat x t)  = f x t
-bind _ g (TypePat x k) = g x k
+bind _ g (TypePat x k)  = g x k
 
 bindId :: Bind -> Id
 bindId = bind const const
 
-literal :: (Integer -> Type -> a)
+literal :: (Integer -> Int -> a)
              -> (Char -> a)
              -> (String -> a)
              -> (Type -> a)
              -> Literal
              -> a
-literal f _ _ _ (Integer x t)  = f x t
-literal _ f _ _ (Char x)       = f x
-literal _ _ f _ (String x)     = f x
-literal _ _ _ f (Type x)       = f x
+literal f _ _ _ (Integer x bs)  = f x bs
+literal _ f _ _ (Char x)        = f x
+literal _ _ f _ (String x)      = f x
+literal _ _ _ f (Type x)        = f x
 

@@ -81,7 +81,7 @@ data Expr
 
 -- | Literal integers, characters or strings
 data Literal
-  = Integer  !Integer  !Type
+  = Integer  !Integer  !Int
   | Char     !Char
   | String   !String
   | Type     !Type
