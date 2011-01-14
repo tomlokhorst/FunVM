@@ -1,5 +1,5 @@
 name:                FunVM
-version:             0.2.4
+version:             0.2.5
 synopsis:            A Functional Intermediate Language
 description:         Better than sliced bread!
 license:             BSD3
@@ -28,7 +28,7 @@ library
                       FunVM.Evaluator,
                       FunVM.JsCompiler,
                       FunVM.Transformations.InlineWrapperAtCallsites,
-                      FunVM.Transformations.SimplePartialEvaluator,
+                      FunVM.Transformations.ReduceLambdaApplication,
                       FunVM.Transformations.WorkerWrapper.DefinitionSiteArityRaising
                       FunVM.Transformations.WorkerWrapper.GenericTransform
 

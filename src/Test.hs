@@ -1,11 +1,11 @@
-module Main where
+module Test where
 
 import FunVM.Core.Build
 import FunVM.Core.Pretty ()
 import FunVM.Core.Syntax
 import FunVM.Evaluator
 import FunVM.JsCompiler
-import qualified FunVM.Transformations.SimplePartialEvaluator as PE
+import qualified FunVM.Transformations.ReduceLambdaApplication as LA
 import qualified FunVM.Transformations.InlineWrapperAtCallsites as IW
 import qualified FunVM.Transformations.WorkerWrapper.DefinitionSiteArityRaising as DAR
 
@@ -127,6 +127,22 @@ test4 = modul "Prelude" []
     )
   , ( TermPat "y" (Lazy [params [Lazy [character]] `Fun` [int32]])
     , Delay $ Var "const" @@ [delay $ int 3]
+    )
+  ]
+
+test5 :: Module
+test5 = modul "Prelude" []
+  [ fun "const"
+        [TermPat "x" $ int32]
+        [params [character] `Fun` [int32]]
+        (lam [TermPat "y" character]
+             (Force $ Var "x"))
+  , ( TermPat "x" (Lazy [int32])
+    , Delay $ Var "const" @@ [int 3]
+                          @@ [char 'c']
+    )
+  , ( TermPat "y" (Lazy [params [character] `Fun` [int32]])
+    , Delay $ Var "const" @@ [int 3]
     )
   ]
 

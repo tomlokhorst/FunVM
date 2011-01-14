@@ -1,6 +1,7 @@
--- Local beta reduction
+-- Reduces lambdas that are immediately applied.
+-- Evaluates `(\x -> f x) (g 3)` to `f (g 3)`
 
-module FunVM.Transformations.SimplePartialEvaluator
+module FunVM.Transformations.ReduceLambdaApplication
   ( transform
   , bindEval
   , typeEval
@@ -52,18 +53,36 @@ valEval env (Delay e)  = Delay (exprEval env e)
 valEval env (Prim s t) = Prim s (typeEval env t)
 
 exprEval :: Env -> Expr -> Expr
-exprEval env (Val v)        = Val (valEval env v)
-exprEval env (Var nm)       = fromMaybe (Var nm) $ lookup nm env
-exprEval env (App e1 e2)    = App (exprEval env e1) (exprEval env e2)
-exprEval env (Multi es)     = Multi (map (exprEval env) es)
-exprEval env (Force e)      = Force (exprEval env e)
-exprEval env (Let bs e1 e2) = Let (map (bindEval env) bs)
+exprEval env (Val (Lam bs e))
+  | applicable                 = exprEval env e
+  where
+    applicable = all (`elem` nms) (map bindId bs)
+    nms        = map fst env
+exprEval env (Val v)           = Val (valEval env v)
+exprEval env (Var nm)          = fromMaybe (Var nm) $ lookup nm env
+exprEval env (App e1 e2)       =
+  case (binds e1, vals $ exprEval env e2) of
+    (bs:_, es)
+      | length bs == length es -> exprEval (zip (map bindId $ bs) es ++ env) e1
+    _                          -> App (exprEval env e1) (exprEval env e2)
+exprEval env (Multi es)        = Multi (map (exprEval env) es)
+exprEval env (Force e)         = Force (exprEval env e)
+exprEval env (Let bs e1 e2)    = Let (map (bindEval env) bs)
                                   (exprEval env e1)
                                   (exprEval (map bindId bs `removeEnv` env) e2)
 exprEval env (LetRec vbs e) = LetRec (groupEval env vbs)
                                      (exprEval env' e)
   where
     env' = map valBindId vbs `removeEnv` env
+
+binds :: Expr -> [[Bind]]
+binds (Val (Lam bs e)) = bs : binds e
+binds (App e1 _)       = drop 1 (binds e1)
+binds _                = []
+
+vals :: Expr -> [Expr]
+vals (Multi es) = concatMap vals es
+vals e          = [e]
 
 groupEval :: Env -> Group -> Group
 groupEval env vbs = map (valBindEval env') vbs
